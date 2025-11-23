@@ -608,6 +608,26 @@ wss.on('connection', (ws) => {
             }
           }
           
+          // 💰 金币结算（回合开始时增加，立即可用）
+          let goldIncome = null;
+          if (isHostTurn) {
+            // 房主回合开始，结算房主金币
+            goldIncome = calculateGoldIncome(gameState.hostGold);
+            gameState.hostGold = goldIncome.newGold;
+            console.log('💰 [金币结算] 房主/蓝方');
+            console.log('   当前金币: %d → %d', goldIncome.newGold - goldIncome.total, goldIncome.newGold);
+            console.log('   基础收入: +%d, 利息: +%d (总收入: +%d)', 
+              goldIncome.base, goldIncome.interest, goldIncome.total);
+          } else {
+            // 客户端回合开始，结算客户端金币
+            goldIncome = calculateGoldIncome(gameState.guestGold);
+            gameState.guestGold = goldIncome.newGold;
+            console.log('💰 [金币结算] 客户端/红方');
+            console.log('   当前金币: %d → %d', goldIncome.newGold - goldIncome.total, goldIncome.newGold);
+            console.log('   基础收入: +%d, 利息: +%d (总收入: +%d)', 
+              goldIncome.base, goldIncome.interest, goldIncome.total);
+          }
+          
           // 🎯 触发回合开始被动技能
           const passiveResults = [];
           const activeCards = isHostTurn ? gameState.blueCards : gameState.redCards;
@@ -677,26 +697,6 @@ wss.on('connection', (ws) => {
               }
             }
           });
-          
-          // 💰 金币结算（回合结束时结算，下回合开始时可用）
-          let goldIncome = null;
-          if (isHostTurn) {
-            // 房主回合结束，结算房主金币
-            goldIncome = calculateGoldIncome(gameState.hostGold);
-            gameState.hostGold = goldIncome.newGold;
-            console.log('💰 [金币结算] 房主/蓝方');
-            console.log('   当前金币: %d → %d', goldIncome.newGold - goldIncome.total, goldIncome.newGold);
-            console.log('   基础收入: +%d, 利息: +%d (总收入: +%d)', 
-              goldIncome.base, goldIncome.interest, goldIncome.total);
-          } else {
-            // 客户端回合结束，结算客户端金币
-            goldIncome = calculateGoldIncome(gameState.guestGold);
-            gameState.guestGold = goldIncome.newGold;
-            console.log('💰 [金币结算] 客户端/红方');
-            console.log('   当前金币: %d → %d', goldIncome.newGold - goldIncome.total, goldIncome.newGold);
-            console.log('   基础收入: +%d, 利息: +%d (总收入: +%d)', 
-              goldIncome.base, goldIncome.interest, goldIncome.total);
-          }
           
           // 📊 回合切换总结
           console.log('───────────────────────────────────────────────────────');

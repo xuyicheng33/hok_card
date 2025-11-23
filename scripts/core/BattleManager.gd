@@ -1502,11 +1502,18 @@ func _apply_passive_skill_result(data: Dictionary):
 	# 更新UI
 	_update_battle_entity_display(card)
 	
-	# 发送被动技能触发信号（传递详细信息）
-	var details = {
-		"heal_amount": effect.get("heal_amount", 0),
-		"overflow_shield": effect.get("overflow_shield", 0)
-	}
+	# 🎯 处理队友治疗（如果有的话）
+	if effect.has("ally_id") and effect.ally_id != null:
+		var ally_card = _find_card_by_id(effect.ally_id)
+		if ally_card and effect.has("ally_new_health"):
+			var ally_old_health = ally_card.health
+			ally_card.health = effect.ally_new_health
+			var ally_heal_amount = effect.get("ally_heal", 0)
+			print("   💚 队友%s恢复: %d → %d (+%d)" % [ally_card.card_name, ally_old_health, ally_card.health, ally_heal_amount])
+			_update_battle_entity_display(ally_card)
+	
+	# 发送被动技能触发信号（传递完整的effect数据）
+	var details = effect.duplicate()
 	
 	# 根据被动技能类型构建消息
 	var message = ""
@@ -1529,7 +1536,7 @@ func _apply_passive_skill_result(data: Dictionary):
 		if msg_parts.size() > 0:
 			message = ", ".join(msg_parts)
 		else:
-			message = "生命值已满"
+			message = "无效果"
 	else:
 		message = "生命+%d 护盾+%d" % [
 			effect.get("heal_amount", 0),
