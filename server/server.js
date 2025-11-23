@@ -216,6 +216,37 @@ wss.on('connection', (ws) => {
             return;
           }
           
+          // 📊 详细攻击日志
+          console.log('═══════════════════════════════════════════════════════');
+          console.log('⚔️  [攻击详情]');
+          console.log('   攻击者: %s (ID: %s)', result.attacker.card_name, result.attacker_id);
+          console.log('   目标:   %s (ID: %s)', result.target.card_name, result.target_id);
+          console.log('───────────────────────────────────────────────────────');
+          console.log('   基础伤害: %d', result.base_damage);
+          console.log('   是否暴击: %s', result.is_critical ? '✅ 是' : '❌ 否');
+          if (result.is_critical) {
+            console.log('   暴击伤害: %d', result.crit_damage);
+          }
+          console.log('   是否闪避: %s', result.is_dodged ? '✅ 是' : '❌ 否');
+          if (!result.is_dodged) {
+            console.log('   最终伤害: %d', result.final_damage);
+            console.log('   目标血量: %d → %d', result.target.health + result.final_damage, result.target.health);
+            console.log('   目标护盾: %d → %d', result.target.shield + Math.min(result.final_damage, result.target.shield || 0), result.target.shield);
+            console.log('   目标存活: %s', result.target_dead ? '❌ 死亡' : '✅ 存活');
+          }
+          // 被动技能触发
+          if (result.lan_passive_triggered) {
+            console.log('   🎯 被动技能: 澜「狩猎」触发！增伤+30%%');
+          }
+          if (result.sunshangxiang_passive_triggered) {
+            console.log('   🎯 被动技能: 孙尚香「千金重弩」触发！获得1技能点');
+          }
+          if (result.yao_passive_triggered) {
+            console.log('   🎯 被动技能: 瑶「山鬼白鹿」触发！为%s提供%d护盾', 
+              result.yao_passive_target.name, result.yao_shield_amount);
+          }
+          console.log('═══════════════════════════════════════════════════════');
+          
           // 🎯 孙尚香被动可能修改了blueSkillPoints/redSkillPoints，需要同步到host/guest
           room.gameState.hostSkillPoints = room.gameState.blueSkillPoints;
           room.gameState.guestSkillPoints = room.gameState.redSkillPoints;
@@ -289,6 +320,8 @@ wss.on('connection', (ws) => {
               
               if (result && result.success) {
                 // ✅ 扣除技能点（使用Math.max确保不为负）
+                const oldHostSP = gameState.hostSkillPoints;
+                const oldGuestSP = gameState.guestSkillPoints;
                 if (isHost) {
                   gameState.hostSkillPoints = Math.max(0, gameState.hostSkillPoints - skillCost);
                   gameState.blueSkillPoints = gameState.hostSkillPoints;  // 同步蓝方
@@ -297,8 +330,49 @@ wss.on('connection', (ws) => {
                   gameState.redSkillPoints = gameState.guestSkillPoints;  // 同步红方
                 }
                 
-                console.log('[技能成功]', result.effect_type, 
-                  `扣除${skillCost}点 剩余:房主${gameState.hostSkillPoints} 客户端${gameState.guestSkillPoints}`);
+                // 📊 详细技能日志
+                console.log('═══════════════════════════════════════════════════════');
+                console.log('✨ [技能详情]');
+                console.log('   施法者: %s', caster.card_name);
+                console.log('   技能名: %s', skillData.skill_name);
+                console.log('   消耗:   %d点', skillCost);
+                console.log('   效果类型: %s', result.effect_type);
+                console.log('───────────────────────────────────────────────────────');
+                
+                // 根据技能类型显示详情
+                if (result.effect_type === 'true_damage' || result.effect_type === 'true_damage_with_armor_reduction') {
+                  console.log('   伤害类型: 真实伤害');
+                  if (result.armor_reduction) {
+                    console.log('   护甲削减: %d', result.armor_reduction);
+                  }
+                  console.log('   伤害数值: %d', result.damage_amount || 0);
+                  console.log('   目标: %s', result.target ? result.target.card_name : '未知');
+                } else if (result.effect_type === 'heal') {
+                  console.log('   治疗数值: %d', result.heal_amount || 0);
+                  console.log('   目标: %s', result.target ? result.target.card_name : '未知');
+                } else if (result.effect_type === 'shield_and_buff') {
+                  console.log('   护盾数值: %d', result.shield_amount || 0);
+                  console.log('   暴击率提升: +%d%%', (result.crit_rate_buff || 0) * 100);
+                  console.log('   护甲提升: +%d', result.armor_buff || 0);
+                  console.log('   目标: %s', result.target ? result.target.card_name : '未知');
+                } else if (result.effect_type === 'self_buff') {
+                  console.log('   攻击力提升: +%d', result.attack_buff || 0);
+                } else if (result.effect_type === 'daqiao_true_damage') {
+                  console.log('   AOE真实伤害');
+                  console.log('   总伤害: %d', result.total_damage || 0);
+                  console.log('   受击目标数: %d', (result.damage_results || []).length);
+                } else if (result.effect_type === 'yangyuhuan_damage' || result.effect_type === 'yangyuhuan_heal') {
+                  const isDamage = result.effect_type === 'yangyuhuan_damage';
+                  console.log('   效果: %s', isDamage ? 'AOE伤害' : 'AOE治疗');
+                  console.log('   总量: %d', isDamage ? result.total_damage : result.total_heal || 0);
+                  console.log('   受影响目标数: %d', (isDamage ? result.damage_results : result.heal_results || []).length);
+                }
+                
+                console.log('───────────────────────────────────────────────────────');
+                console.log('   技能点: 房主 %d→%d | 客户端 %d→%d', 
+                  oldHostSP, gameState.hostSkillPoints,
+                  oldGuestSP, gameState.guestSkillPoints);
+                console.log('═══════════════════════════════════════════════════════');
                 
                 // 🎯 使用行动点
                 if (isHost) {
@@ -347,13 +421,23 @@ wss.on('connection', (ws) => {
           // 🎯 服务器权威管理回合切换
           const gameState = room.gameState;
           
+          // 📊 回合切换详细日志
+          console.log('\n');
+          console.log('┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓');
+          console.log('┃          🔄 回合切换                               ┃');
+          console.log('┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛');
+          
           // 回合数+1
+          const oldTurn = gameState.currentTurn;
           gameState.currentTurn++;
           
           // 判断下一回合是谁的
           // 奇数回合=房主(host)，偶数回合=客户端(guest)
           const isHostTurn = (gameState.currentTurn % 2 === 1);
           gameState.currentPlayer = isHostTurn ? 'host' : 'guest';
+          
+          console.log('   回合: 第%d回合 → 第%d回合', oldTurn, gameState.currentTurn);
+          console.log('   当前玩家: %s', isHostTurn ? '房主/蓝方' : '客户端/红方');
           
           // 🎯 重置行动点（新回合开始）
           if (isHostTurn) {
@@ -421,8 +505,34 @@ wss.on('connection', (ws) => {
             }
           });
           
-          console.log('[回合切换]', roomId, '第', gameState.currentTurn, '回合，当前玩家:', gameState.currentPlayer,
-            '技能点 房主:', gameState.hostSkillPoints, '客户端:', gameState.guestSkillPoints);
+          // 📊 回合切换总结
+          console.log('───────────────────────────────────────────────────────');
+          console.log('   技能点: 房主 %d/6 | 客户端 %d/6', 
+            gameState.hostSkillPoints, gameState.guestSkillPoints);
+          console.log('   行动点: 蓝方 %d/3 | 红方 %d/3',
+            gameState.blueActionsUsed, gameState.redActionsUsed);
+          console.log('   被动触发: %d个', passiveResults.length);
+          
+          // 显示卡牌状态
+          console.log('   蓝方状态:');
+          gameState.blueCards.forEach(card => {
+            if (card.health > 0) {
+              console.log('      %s: HP %d/%d, 护盾 %d, 攻击 %d',
+                card.card_name, card.health, card.max_health, card.shield || 0, card.attack);
+            } else {
+              console.log('      %s: ❌ 死亡', card.card_name);
+            }
+          });
+          console.log('   红方状态:');
+          gameState.redCards.forEach(card => {
+            if (card.health > 0) {
+              console.log('      %s: HP %d/%d, 护盾 %d, 攻击 %d',
+                card.card_name, card.health, card.max_health, card.shield || 0, card.attack);
+            } else {
+              console.log('      %s: ❌ 死亡', card.card_name);
+            }
+          });
+          console.log('┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n');
           
           // 广播回合变化给双方
           room.players.forEach(playerId => {
