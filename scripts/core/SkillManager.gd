@@ -407,8 +407,8 @@ func _execute_shield_and_buff_effect(caster, target, params: Dictionary) -> Dict
 	var old_shield = target_card.shield
 	
 	# 计算护盾值：基础值 + 瑶当前生命值的百分比
-	var shield_amount = params.get("shield_base", 150)
-	var shield_percentage = params.get("shield_percentage", 0.08)
+	var shield_amount = params.get("shield_base", 170)
+	var shield_percentage = params.get("shield_percentage", 0.10)
 	var calculated_shield = int(caster_card.health * shield_percentage)
 	shield_amount += calculated_shield
 	
@@ -416,11 +416,11 @@ func _execute_shield_and_buff_effect(caster, target, params: Dictionary) -> Dict
 	target_card.add_shield(shield_amount)
 	
 	# 增加暴击率
-	var crit_buff = params.get("crit_buff", 0.05)
+	var crit_buff = params.get("crit_buff", 0.08)
 	target_card.add_crit_rate(crit_buff)
 	
 	# 增加护甲
-	var armor_buff = params.get("armor_buff", 20)
+	var armor_buff = params.get("armor_buff", 25)
 	target_card.armor += armor_buff
 	
 	# 更新显示

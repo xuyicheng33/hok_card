@@ -164,8 +164,8 @@ class BattleEngine {
       });
       
       if (lowestHpAlly) {
-        // 计算护盾量：80 + 瑶当前生命值×2%
-        yaoShieldAmount = Math.floor(80 + target.health * 0.02);
+        // 计算护盾量：100 + 瑶当前生命值×3%
+        yaoShieldAmount = Math.floor(100 + target.health * 0.03);
         lowestHpAlly.shield = (lowestHpAlly.shield || 0) + yaoShieldAmount;
         
         yaoPassiveTriggered = true;

@@ -84,11 +84,11 @@
 	  "crit_rate": 0.0,
 	  "crit_damage": 1.3,
 	  "skill_name": "鹿灵守心",
-	  "skill_effect": "使一名友方英雄获得（150 + 瑶当前生命值8%点）护盾值，并提升其5%暴击率和20点护甲。",
+	  "skill_effect": "使一名友方英雄获得（170 + 瑶当前生命值10%点）护盾值，并提升其8%暴击率和25点护甲。",
 	  "skill_cost": 2,
 	  "skill_ends_turn": true,
 	  "passive_skill_name": "山鬼白鹿",
-	  "passive_skill_effect": "瑶受到敌方伤害时，为当前全场生命值最低的友方英雄增加（80 + 瑶当前生命值2%）点护盾值。",
+	  "passive_skill_effect": "瑶受到敌方伤害时，为当前全场生命值最低的友方英雄增加（100 + 瑶当前生命值3%）点护盾值。",
 	  "image_path": "res://assets/images/cards/yao.png",
 	  "card_type": "support",
 	  "rarity": "epic"

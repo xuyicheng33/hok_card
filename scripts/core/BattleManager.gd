@@ -382,8 +382,8 @@ func _execute_attack_internal(attacker: Card, target: Card, attacker_is_player: 
 		
 		# 如果找到了生命值最低的友方英雄，则为其添加护盾
 		if lowest_health_ally:
-			# 计算护盾值：基础值80 + 瑶当前生命值的2%
-			var shield_amount = int(80 + target.health * 0.02)
+			# 计算护盾值：基础值100 + 瑶当前生命值的3%
+			var shield_amount = int(100 + target.health * 0.03)
 			lowest_health_ally.add_shield(shield_amount)
 			print("🦌 瑶被动「山鬼白鹿」触发：为%s添加%d点护盾（当前护盾:%d）" % [
 				lowest_health_ally.card_name, shield_amount, lowest_health_ally.shield

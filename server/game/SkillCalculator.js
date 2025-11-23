@@ -176,17 +176,17 @@ class SkillCalculator {
       return { success: false, error: '施法者或目标未找到' };
     }
 
-    // 护盾：150 + 瑶当前生命值的8%
-    const shieldAmount = 150 + Math.floor(caster.health * 0.08);
+    // 护盾：170 + 瑶当前生命值的10%
+    const shieldAmount = 170 + Math.floor(caster.health * 0.10);
     target.shield = (target.shield || 0) + shieldAmount;
 
-    // 暴击率+5%
-    const critRateBuff = 0.05;
+    // 暴击率+8%
+    const critRateBuff = 0.08;
     const oldCritRate = target.crit_rate;
     target.crit_rate = Math.min(1.0, target.crit_rate + critRateBuff);
 
-    // 护甲+20
-    const armorBuff = 20;
+    // 护甲+25
+    const armorBuff = 25;
     const oldArmor = target.armor;
     target.armor += armorBuff;
 
