@@ -1012,15 +1012,23 @@ func create_default_online_cards():
 			# 房主：蓝方是我方，红方是对方
 			test_player_cards = blue_cards
 			test_enemy_cards = red_cards
-			var player_names = [c.card_name for c in blue_cards]
-			var enemy_names = [c.card_name for c in red_cards]
+			var player_names = []
+			for c in blue_cards:
+				player_names.append(c.card_name)
+			var enemy_names = []
+			for c in red_cards:
+				enemy_names.append(c.card_name)
 			print("🌐 房主视角：我方=蓝方(%s), 对方=红方(%s)" % ["+".join(player_names), "+".join(enemy_names)])
 		else:
 			# 客户端：红方是我方，蓝方是对方
 			test_player_cards = red_cards
 			test_enemy_cards = blue_cards
-			var player_names = [c.card_name for c in red_cards]
-			var enemy_names = [c.card_name for c in blue_cards]
+			var player_names = []
+			for c in red_cards:
+				player_names.append(c.card_name)
+			var enemy_names = []
+			for c in blue_cards:
+				enemy_names.append(c.card_name)
 			print("🌐 客户端视角：我方=红方(%s), 对方=蓝方(%s)" % ["+".join(player_names), "+".join(enemy_names)])
 		
 		print("🌐 在线模式卡牌创建完成（从服务器数据）")
