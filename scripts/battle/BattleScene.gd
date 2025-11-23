@@ -1920,26 +1920,19 @@ func _on_passive_skill_triggered(card: Card, skill_name: String, effect: String,
 					message_system.add_passive_skill(card.card_name, skill_name, "攻击暴击，获得固定增益，闪避概率+5%%，当前闪避概率%.1f%%" % current_dodge_rate, details)
 			"山鬼白鹿":
 				# 瑶被动技能为其他角色添加护盾的情况
-				# 从effect中提取信息
+				# 从effect中提取目标名称，用于更新UI
 				var regex = RegEx.new()
 				regex.compile(r"为(.+)添加(\d+)点护盾")
 				var match_result = regex.search(effect)
 				if match_result:
 					var target_name = match_result.get_string(1)
-					var shield_amount = int(match_result.get_string(2))
-					details = {
-						"target_ally": target_name,
-						"base_shield": 80,
-						"health_percent": 2,
-						"yao_health": card.health,
-						"calculated_shield": shield_amount
-					}
 					# 更新获得护盾的友方卡牌显示
 					for entity in player_cards + enemy_cards:
 						if entity and is_instance_valid(entity) and entity.get_card().card_name == target_name:
 							entity.update_display()
 							print("更新获得护盾的友方卡牌显示: %s" % target_name)
 							break
+				# 直接使用传入的details，已经包含正确的数值
 				message_system.add_passive_skill(card.card_name, "山鬼白鹿", effect, details)
 			"宿命之海":
 				# 大乔的被动技能处理

@@ -456,8 +456,8 @@ func add_passive_skill(character: String, skill_name: String, effect: String, de
 			"山鬼白鹿":
 				# 瑶被动技能护盾计算
 				var target_ally = details.get("target_ally", "友方英雄")
-				var base_shield = details.get("base_shield", 80)
-				var health_percent = details.get("health_percent", 2)
+				var base_shield = details.get("base_shield", 100)  # 🔧 正确的基础值
+				var health_percent = details.get("health_percent", 3)  # 🔧 正确的百分比
 				var yao_health = details.get("yao_health", 0)
 				var calculated_shield = base_shield + int(yao_health * health_percent / 100.0)
 				

@@ -403,7 +403,14 @@ func _execute_attack_internal(attacker: Card, target: Card, attacker_is_player: 
 			])
 			
 			# 发送瑶被动技能触发信号
-			passive_skill_triggered.emit(target, "山鬼白鹿", "为%s添加%d点护盾" % [lowest_health_ally.card_name, shield_amount], {})
+			passive_skill_triggered.emit(target, "山鬼白鹿", "为%s添加%d点护盾" % [lowest_health_ally.card_name, shield_amount], {
+				"target_ally": lowest_health_ally.card_name,
+				"base_shield": 100,
+				"health_percent": 3,
+				"yao_health": target.health,
+				"shield_amount": shield_amount,
+				"total_shield": lowest_health_ally.shield
+			})
 	
 	# 公孙离被动技能：如果攻击暴击，则增加闪避概率
 	if attacker.card_name == "公孙离" and is_critical and not is_dodged:
@@ -1198,12 +1205,17 @@ func _handle_opponent_attack(data: Dictionary):
 			
 			# 记录到消息系统
 			if message_system:
+				# 🦌 从服务器数据中提取瑶的当前生命值
+				var yao_current_health = target.health  # 受伤后的生命值
 				message_system.add_passive_skill(
 					target.card_name,
 					"山鬼白鹿",
 					"受伤时为%s提供%d点护盾" % [beneficiary.card_name, shield_amount],
 					{
-						"target_name": beneficiary.card_name,
+						"target_ally": beneficiary.card_name,
+						"base_shield": 100,  # 🔧 正确的基础值
+						"health_percent": 3,  # 🔧 正确的百分比
+						"yao_health": yao_current_health,  # 🔧 瑶当前生命值
 						"shield_amount": shield_amount,
 						"total_shield": beneficiary.shield
 					}
