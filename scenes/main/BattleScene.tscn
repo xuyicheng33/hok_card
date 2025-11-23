@@ -1,0 +1,174 @@
+[gd_scene load_steps=2 format=3 uid="uid://ckxlnku0usakk"]
+
+[ext_resource type="Script" uid="uid://0ruxgeml60iv" path="res://scripts/battle/BattleScene.gd" id="1_battle"]
+
+[node name="BattleScene" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_battle")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.08, 0.15, 0.35, 1)
+
+[node name="MainContainer" type="VBoxContainer" parent="Background"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TopArea" type="HBoxContainer" parent="Background/MainContainer"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="BattleTitle" type="Label" parent="Background/MainContainer/TopArea"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 24
+text = "战斗"
+horizontal_alignment = 1
+
+[node name="TurnInfo" type="Label" parent="Background/MainContainer/TopArea"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1)
+theme_override_font_sizes/font_size = 16
+text = "回合 1 - 玩家回合"
+horizontal_alignment = 2
+
+[node name="BattleArea" type="VBoxContainer" parent="Background/MainContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="EnemyArea" type="VBoxContainer" parent="Background/MainContainer/BattleArea"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="EnemyLabel" type="Label" parent="Background/MainContainer/BattleArea/EnemyArea"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 18
+text = "敌方卡牌"
+horizontal_alignment = 1
+
+[node name="EnemyCardContainer" type="HBoxContainer" parent="Background/MainContainer/BattleArea/EnemyArea"]
+layout_mode = 2
+size_flags_vertical = 3
+alignment = 1
+
+[node name="CenterArea" type="Control" parent="Background/MainContainer/BattleArea"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+
+[node name="CenterPanel" type="Panel" parent="Background/MainContainer/BattleArea/CenterArea"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 100.0
+offset_right = -100.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BattleInfo" type="VBoxContainer" parent="Background/MainContainer/BattleArea/CenterArea/CenterPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BattleStatusLabel" type="Label" parent="Background/MainContainer/BattleArea/CenterArea/CenterPanel/BattleInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "选择一张卡牌攻击"
+horizontal_alignment = 1
+
+[node name="LastActionLabel" type="Label" parent="Background/MainContainer/BattleArea/CenterArea/CenterPanel/BattleInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1)
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 1
+
+[node name="PlayerArea" type="VBoxContainer" parent="Background/MainContainer/BattleArea"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="PlayerCardContainer" type="HBoxContainer" parent="Background/MainContainer/BattleArea/PlayerArea"]
+layout_mode = 2
+size_flags_vertical = 3
+alignment = 1
+
+[node name="PlayerLabel" type="Label" parent="Background/MainContainer/BattleArea/PlayerArea"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 1, 0.7, 1)
+theme_override_font_sizes/font_size = 18
+text = "我方卡牌"
+horizontal_alignment = 1
+
+[node name="BottomArea" type="HBoxContainer" parent="Background/MainContainer"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="LeftButtons" type="HBoxContainer" parent="Background/MainContainer/BottomArea"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="EndTurnButton" type="Button" parent="Background/MainContainer/BottomArea/LeftButtons"]
+layout_mode = 2
+theme_override_colors/font_hover_color = Color(0.8, 0.9, 1, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "结束回合"
+
+[node name="UseSkillButton" type="Button" parent="Background/MainContainer/BottomArea/LeftButtons"]
+layout_mode = 2
+theme_override_colors/font_hover_color = Color(1, 0.9, 0.6, 1)
+theme_override_colors/font_color = Color(1, 0.8, 0.2, 1)
+theme_override_font_sizes/font_size = 16
+text = "发动技能"
+
+[node name="RightButtons" type="HBoxContainer" parent="Background/MainContainer/BottomArea"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Spacer" type="Control" parent="Background/MainContainer/BottomArea/RightButtons"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="DetailButton" type="Button" parent="Background/MainContainer/BottomArea/RightButtons"]
+layout_mode = 2
+theme_override_colors/font_hover_color = Color(0.6, 1, 0.8, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "详情"
+
+[node name="BackToMenuButton" type="Button" parent="Background/MainContainer/BottomArea/RightButtons"]
+layout_mode = 2
+theme_override_colors/font_hover_color = Color(1, 0.8, 0.6, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "返回主菜单"
+
+[connection signal="pressed" from="Background/MainContainer/BottomArea/LeftButtons/EndTurnButton" to="." method="_on_end_turn_pressed"]
+[connection signal="pressed" from="Background/MainContainer/BottomArea/LeftButtons/UseSkillButton" to="." method="_on_use_skill_pressed"]
+[connection signal="pressed" from="Background/MainContainer/BottomArea/RightButtons/DetailButton" to="." method="_on_detail_button_pressed"]
+[connection signal="pressed" from="Background/MainContainer/BottomArea/RightButtons/BackToMenuButton" to="." method="_on_back_to_menu_pressed"]
+

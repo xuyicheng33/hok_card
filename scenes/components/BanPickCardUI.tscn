@@ -1,0 +1,88 @@
+[gd_scene load_steps=5 format=3 uid="uid://banpickcardui"]
+
+[ext_resource type="Script" path="res://scripts/ui/BanPickCardUI.gd" id="1"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
+bg_color = Color(0.2, 0.2, 0.3, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.8, 0.8, 0.9, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4"]
+bg_color = Color(0.5, 0.5, 0.5, 0.7)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3, 0.3, 0.3, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="BanPickCardUI" type="Control"]
+custom_minimum_size = Vector2(180, 270)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 180.0
+offset_bottom = 270.0
+script = ExtResource("1")
+
+[node name="Background" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_1")
+
+[node name="CardImage" type="TextureRect" parent="."]
+clip_contents = true
+layout_mode = 1
+anchors_preset = 0
+offset_left = 5.0
+offset_top = 5.0
+offset_right = 175.0
+offset_bottom = 225.0
+stretch_mode = 5
+expand_mode = 1
+
+[node name="CardName" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 5.0
+offset_top = 230.0
+offset_right = 175.0
+offset_bottom = 265.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "卡牌名称"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="StatusOverlay" type="Panel" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_4")
+
+[node name="StatusLabel" type="Label" parent="StatusOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 28
+text = "禁用"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[connection signal="mouse_entered" from="." to="." method="_on_card_mouse_entered"]
+[connection signal="mouse_exited" from="." to="." method="_on_card_mouse_exited"]

@@ -1,0 +1,42 @@
+[gd_scene load_steps=2 format=3 uid="uid://bq1raeacacaca"]
+
+[ext_resource type="Script" uid="uid://bu5xwfbd4k5dh" path="res://scripts/ui/MusicPlayer.gd" id="1_music"]
+
+[node name="MusicPlayer" type="Panel"]
+offset_right = 400.0
+offset_bottom = 60.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_music")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SongLabel" type="Label" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+text = "未播放音乐"
+
+[node name="PreviousButton" type="Button" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 18
+text = "◀◀"
+
+[node name="PlayPauseButton" type="Button" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 18
+text = "▶"
+
+[node name="NextButton" type="Button" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 18
+text = "▶▶"

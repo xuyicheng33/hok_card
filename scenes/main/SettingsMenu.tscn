@@ -1,0 +1,256 @@
+[gd_scene load_steps=3 format=3 uid="uid://settings_menu"]
+
+[ext_resource type="Script" path="res://scripts/ui/SettingsMenu.gd" id="1_settings"]
+[ext_resource type="PackedScene" uid="uid://bq1q9d9b9b9b9" path="res://scenes/ui/MusicPlayer.tscn" id="2_music"]
+
+[node name="SettingsMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_settings")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.1, 0.2, 0.4, 1)
+
+[node name="MusicPlayer" parent="Background" instance=ExtResource("2_music")]
+layout_mode = 1
+anchors_preset = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 410.0
+offset_bottom = 70.0
+grow_horizontal = 0
+grow_vertical = 0
+z_index = 100
+
+[node name="MainContainer" type="VBoxContainer" parent="Background"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 50.0
+offset_top = 50.0
+offset_right = -50.0
+offset_bottom = -50.0
+
+[node name="TitleArea" type="VBoxContainer" parent="Background/MainContainer"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="Title" type="Label" parent="Background/MainContainer/TitleArea"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 36
+text = "设置"
+horizontal_alignment = 1
+
+[node name="TabContainer" type="TabContainer" parent="Background/MainContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_selected_color = Color(0.8, 0.9, 1, 1)
+theme_override_colors/font_unselected_color = Color(0.6, 0.7, 0.8, 1)
+
+[node name="音频" type="VBoxContainer" parent="Background/MainContainer/TabContainer"]
+layout_mode = 2
+
+[node name="MasterVolumeContainer" type="HBoxContainer" parent="Background/MainContainer/TabContainer/音频"]
+layout_mode = 2
+
+[node name="MasterVolumeLabel" type="Label" parent="Background/MainContainer/TabContainer/音频/MasterVolumeContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+text = "主音量"
+
+[node name="MasterVolumeSlider" type="HSlider" parent="Background/MainContainer/TabContainer/音频/MasterVolumeContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 100.0
+step = 1.0
+value = 80.0
+
+[node name="MasterVolumeValue" type="Label" parent="Background/MainContainer/TabContainer/音频/MasterVolumeContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+text = "80%"
+
+[node name="MusicVolumeContainer" type="HBoxContainer" parent="Background/MainContainer/TabContainer/音频"]
+layout_mode = 2
+
+[node name="MusicVolumeLabel" type="Label" parent="Background/MainContainer/TabContainer/音频/MusicVolumeContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+text = "背景音乐"
+
+[node name="MusicVolumeSlider" type="HSlider" parent="Background/MainContainer/TabContainer/音频/MusicVolumeContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 100.0
+step = 1.0
+value = 80.0
+
+[node name="MusicVolumeValue" type="Label" parent="Background/MainContainer/TabContainer/音频/MusicVolumeContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+text = "80%"
+
+[node name="SfxVolumeContainer" type="HBoxContainer" parent="Background/MainContainer/TabContainer/音频"]
+layout_mode = 2
+
+[node name="SfxVolumeLabel" type="Label" parent="Background/MainContainer/TabContainer/音频/SfxVolumeContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+text = "音效"
+
+[node name="SfxVolumeSlider" type="HSlider" parent="Background/MainContainer/TabContainer/音频/SfxVolumeContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 100.0
+step = 1.0
+value = 80.0
+
+[node name="SfxVolumeValue" type="Label" parent="Background/MainContainer/TabContainer/音频/SfxVolumeContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+text = "80%"
+
+[node name="MuteContainer" type="HBoxContainer" parent="Background/MainContainer/TabContainer/音频"]
+layout_mode = 2
+
+[node name="MuteLabel" type="Label" parent="Background/MainContainer/TabContainer/音频/MuteContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+text = "静音"
+
+[node name="MuteCheckBox" type="CheckBox" parent="Background/MainContainer/TabContainer/音频/MuteContainer"]
+layout_mode = 2
+
+[node name="显示" type="VBoxContainer" parent="Background/MainContainer/TabContainer"]
+layout_mode = 2
+
+[node name="FullscreenContainer" type="HBoxContainer" parent="Background/MainContainer/TabContainer/显示"]
+layout_mode = 2
+
+[node name="FullscreenLabel" type="Label" parent="Background/MainContainer/TabContainer/显示/FullscreenContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+text = "全屏模式"
+
+[node name="FullscreenCheckBox" type="CheckBox" parent="Background/MainContainer/TabContainer/显示/FullscreenContainer"]
+layout_mode = 2
+
+[node name="ResolutionContainer" type="HBoxContainer" parent="Background/MainContainer/TabContainer/显示"]
+layout_mode = 2
+
+[node name="ResolutionLabel" type="Label" parent="Background/MainContainer/TabContainer/显示/ResolutionContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+text = "分辨率"
+
+[node name="ResolutionOption" type="OptionButton" parent="Background/MainContainer/TabContainer/显示/ResolutionContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="QualityContainer" type="HBoxContainer" parent="Background/MainContainer/TabContainer/显示"]
+layout_mode = 2
+
+[node name="QualityLabel" type="Label" parent="Background/MainContainer/TabContainer/显示/QualityContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+text = "画质"
+
+[node name="QualityOption" type="OptionButton" parent="Background/MainContainer/TabContainer/显示/QualityContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VsyncContainer" type="HBoxContainer" parent="Background/MainContainer/TabContainer/显示"]
+layout_mode = 2
+
+[node name="VsyncLabel" type="Label" parent="Background/MainContainer/TabContainer/显示/VsyncContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+text = "垂直同步"
+
+[node name="VsyncCheckBox" type="CheckBox" parent="Background/MainContainer/TabContainer/显示/VsyncContainer"]
+layout_mode = 2
+
+[node name="游戏" type="VBoxContainer" parent="Background/MainContainer/TabContainer"]
+layout_mode = 2
+
+[node name="AnimationSpeedContainer" type="HBoxContainer" parent="Background/MainContainer/TabContainer/游戏"]
+layout_mode = 2
+
+[node name="AnimationSpeedLabel" type="Label" parent="Background/MainContainer/TabContainer/游戏/AnimationSpeedContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+text = "动画速度"
+
+[node name="AnimationSpeedSlider" type="HSlider" parent="Background/MainContainer/TabContainer/游戏/AnimationSpeedContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.5
+max_value = 2.0
+step = 0.1
+value = 1.0
+
+[node name="AnimationSpeedValue" type="Label" parent="Background/MainContainer/TabContainer/游戏/AnimationSpeedContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+text = "1.0x"
+
+[node name="AutoSaveContainer" type="HBoxContainer" parent="Background/MainContainer/TabContainer/游戏"]
+layout_mode = 2
+
+[node name="AutoSaveLabel" type="Label" parent="Background/MainContainer/TabContainer/游戏/AutoSaveContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+text = "自动保存"
+
+[node name="AutoSaveCheckBox" type="CheckBox" parent="Background/MainContainer/TabContainer/游戏/AutoSaveContainer"]
+layout_mode = 2
+
+[node name="ButtonArea" type="HBoxContainer" parent="Background/MainContainer"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="ApplyButton" type="Button" parent="Background/MainContainer/ButtonArea"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(0.8, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 24
+text = "应用"
+
+[node name="ResetButton" type="Button" parent="Background/MainContainer/ButtonArea"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 0.8, 0.6, 1)
+theme_override_font_sizes/font_size = 24
+text = "重置"
+
+[node name="BackButton" type="Button" parent="Background/MainContainer/ButtonArea"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(0.8, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 24
+text = "返回主菜单"

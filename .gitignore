@@ -1,0 +1,11 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+
+# 构建产物（不需要提交）
+builds/
+*.exe
+*.pck
+*.wasm
+*.zip
+hok_card.console.exe

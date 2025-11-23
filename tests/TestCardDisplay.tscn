@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=3 uid="uid://testcarddisplay"]
+
+[ext_resource type="Script" path="res://tests/TestCardDisplay.gd" id="1_script"]
+
+[node name="TestCardDisplay" type="Control"]
+layout_mode = 3
+anchors_preset = 4
+script = ExtResource("1_script")
