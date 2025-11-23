@@ -367,20 +367,18 @@ func _execute_attack_internal(attacker: Card, target: Card, attacker_is_player: 
 				"，溢出%d点转换为%d点护盾" % [overflow_points, shield_amount] if overflow_points > 0 else ""
 			], passive_details)
 
-	# 🦌 瑶的被动技能：山鬼白鹿（受到伤害时为血量百分比最低的友方添加护盾）
+	# 🦌 瑶的被动技能：山鬼白鹿（受到伤害时为绝对血量最低的友方添加护盾）
 	if target.card_name == "瑶" and actual_damage > 0:
-		# 查找全场血量百分比最低的友方英雄（包括瑶自己）
+		# 查找全场绝对血量最低的友方英雄（包括瑶自己）
 		var lowest_health_ally = null
-		var lowest_hp_percent = 1.0
+		var lowest_health = 999999
 		
 		# 检查所有存活的友方卡牌
 		var ally_cards = get_alive_player_cards() if is_card_in_player_side(target) else get_alive_enemy_cards()
 		for ally_card in ally_cards:
-			if not ally_card.is_dead():
-				var hp_percent = float(ally_card.health) / float(ally_card.max_health)
-				if hp_percent < lowest_hp_percent:
-					lowest_hp_percent = hp_percent
-					lowest_health_ally = ally_card
+			if not ally_card.is_dead() and ally_card.health < lowest_health:
+				lowest_health = ally_card.health
+				lowest_health_ally = ally_card
 		
 		# 如果找到了生命值最低的友方英雄，则为其添加护盾
 		if lowest_health_ally:

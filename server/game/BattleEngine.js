@@ -142,7 +142,7 @@ class BattleEngine {
       }
     }
     
-    // 🦌 瑶被动技能：山鬼白鹿（受到伤害时，为最低血量友方提供护盾）
+    // 🦌 瑶被动技能：山鬼白鹿（受到伤害时，为绝对血量最低的友方提供护盾）
     let yaoPassiveTriggered = false;
     let yaoPassiveTarget = null;
     let yaoShieldAmount = 0;
@@ -152,17 +152,14 @@ class BattleEngine {
       const isYaoBlue = this.state.blueCards.some(c => c.id === targetId);
       const allies = isYaoBlue ? this.state.blueCards : this.state.redCards;
       
-      // 查找最低血量的友方（包括瑶自己）
+      // 查找绝对血量最低的友方（包括瑶自己）
       let lowestHpAlly = null;
-      let lowestHpPercent = 1.0;
+      let lowestHealth = 999999;
       
       allies.forEach(ally => {
-        if (ally.health > 0) {  // 只考虑存活的友方
-          const hpPercent = ally.health / ally.max_health;
-          if (hpPercent < lowestHpPercent) {
-            lowestHpPercent = hpPercent;
-            lowestHpAlly = ally;
-          }
+        if (ally.health > 0 && ally.health < lowestHealth) {  // 只考虑存活的友方
+          lowestHealth = ally.health;
+          lowestHpAlly = ally;
         }
       });
       
