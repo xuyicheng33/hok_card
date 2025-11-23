@@ -488,6 +488,54 @@ func _execute_attack_internal(attacker: Card, target: Card, attacker_is_player: 
 			result["sunshangxiang_passive_triggered"] = false
 			result["skill_points_gained"] = 0
 	
+	# 🦌 瑶被动技能：山鬼白鹿（受到伤害时，为最低血量友方提供护盾）
+	if target.card_name == "瑶" and not is_dodged and final_damage > 0:
+		# 判断瑶所属阵营
+		var allies = player_cards if not attacker_is_player else enemy_cards
+		
+		# 查找最低血量百分比的友方（包括瑶自己）
+		var lowest_hp_ally = null
+		var lowest_hp_percent = 1.0
+		
+		for ally in allies:
+			if not ally.is_dead():
+				var hp_percent = float(ally.health) / float(ally.max_health)
+				if hp_percent < lowest_hp_percent:
+					lowest_hp_percent = hp_percent
+					lowest_hp_ally = ally
+		
+		if lowest_hp_ally:
+			# 计算护盾量：80 + 瑶当前生命值×2%
+			var shield_amount = int(80 + target.health * 0.02)
+			lowest_hp_ally.shield += shield_amount
+			
+			print("🦌 瑶被动「山鬼白鹿」触发！为%s提供%d点护盾（当前护盾:%d）" % [
+				lowest_hp_ally.card_name, shield_amount, lowest_hp_ally.shield
+			])
+			
+			# 更新UI
+			_update_battle_entity_display(lowest_hp_ally)
+			
+			# 记录到消息系统
+			if message_system:
+				message_system.add_passive_skill(
+					target.card_name,
+					"山鬼白鹿",
+					"受伤时为%s提供%d点护盾" % [lowest_hp_ally.card_name, shield_amount],
+					{
+						"target_name": lowest_hp_ally.card_name,
+						"shield_amount": shield_amount,
+						"total_shield": lowest_hp_ally.shield
+					}
+				)
+			
+			# 记录到结果
+			result["yao_passive_triggered"] = true
+			result["yao_target"] = lowest_hp_ally.card_name
+			result["yao_shield_amount"] = shield_amount
+		else:
+			result["yao_passive_triggered"] = false
+	
 	# 杨玉环被动技能：霓裳风华（释放主动技能后，下一次普通攻击会额外对一名随机敌方造成主目标70%的伤害）
 	if attacker.card_name == "杨玉环" and attacker.yangyuhuan_skill_used:
 		# 重置标记
@@ -1114,6 +1162,39 @@ func _handle_opponent_attack(data: Dictionary):
 				"攻击命中，获得1点技能点",
 				{}
 			)
+	
+	# 🦌 瑶被动技能：山鬼白鹿（受伤时为最低血量友方提供护盾）
+	if data.get("yao_passive_triggered", false) and data.has("yao_passive_target"):
+		var yao_target_data = data.yao_passive_target
+		var shield_amount = data.yao_shield_amount
+		
+		print("🦌 瑶被动「山鬼白鹿」触发！为%s提供%d点护盾" % [yao_target_data.name, shield_amount])
+		
+		# 查找受益的友方卡牌
+		var beneficiary = _find_card_by_id(yao_target_data.id)
+		if beneficiary:
+			# 更新护盾值
+			beneficiary.shield = yao_target_data.shield
+			print("   %s 护盾更新: → %d" % [beneficiary.card_name, beneficiary.shield])
+			
+			# 更新UI
+			if entity_card_map.has(beneficiary):
+				var beneficiary_entity = entity_card_map[beneficiary]
+				if beneficiary_entity and is_instance_valid(beneficiary_entity):
+					beneficiary_entity.update_display()
+			
+			# 记录到消息系统
+			if message_system:
+				message_system.add_passive_skill(
+					target.card_name,
+					"山鬼白鹿",
+					"受伤时为%s提供%d点护盾" % [beneficiary.card_name, shield_amount],
+					{
+						"target_name": beneficiary.card_name,
+						"shield_amount": shield_amount,
+						"total_shield": beneficiary.shield
+					}
+				)
 	
 	# 📝 记录到消息系统（如果存在）
 	if message_system:

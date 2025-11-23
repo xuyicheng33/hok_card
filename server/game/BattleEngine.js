@@ -142,6 +142,46 @@ class BattleEngine {
       }
     }
     
+    // 🦌 瑶被动技能：山鬼白鹿（受到伤害时，为最低血量友方提供护盾）
+    let yaoPassiveTriggered = false;
+    let yaoPassiveTarget = null;
+    let yaoShieldAmount = 0;
+    
+    if (target.card_name === '瑶' && !isDodged && actualDamage > 0) {
+      // 判断瑶所属阵营
+      const isYaoBlue = this.state.blueCards.some(c => c.id === targetId);
+      const allies = isYaoBlue ? this.state.blueCards : this.state.redCards;
+      
+      // 查找最低血量的友方（包括瑶自己）
+      let lowestHpAlly = null;
+      let lowestHpPercent = 1.0;
+      
+      allies.forEach(ally => {
+        if (ally.health > 0) {  // 只考虑存活的友方
+          const hpPercent = ally.health / ally.max_health;
+          if (hpPercent < lowestHpPercent) {
+            lowestHpPercent = hpPercent;
+            lowestHpAlly = ally;
+          }
+        }
+      });
+      
+      if (lowestHpAlly) {
+        // 计算护盾量：80 + 瑶当前生命值×2%
+        yaoShieldAmount = Math.floor(80 + target.health * 0.02);
+        lowestHpAlly.shield = (lowestHpAlly.shield || 0) + yaoShieldAmount;
+        
+        yaoPassiveTriggered = true;
+        yaoPassiveTarget = {
+          id: lowestHpAlly.id,
+          name: lowestHpAlly.card_name,
+          shield: lowestHpAlly.shield
+        };
+        
+        console.log(`   🦌 瑶被动「山鬼白鹿」触发！为${lowestHpAlly.card_name}提供${yaoShieldAmount}点护盾 (当前护盾:${lowestHpAlly.shield})`);
+      }
+    }
+    
     const result = {
       attacker_id: attackerId,
       target_id: targetId,
@@ -155,6 +195,10 @@ class BattleEngine {
       // 🎯 孙尚香被动技能点获取
       passive_skill_triggered: skillPointGained,
       skill_point_change: skillPointChange,
+      // 🦌 瑶被动技能护盾
+      yao_passive_triggered: yaoPassiveTriggered,
+      yao_passive_target: yaoPassiveTarget,
+      yao_shield_amount: yaoShieldAmount,
       // 🎯 同步卡牌属性变化（用于被动技能）
       attacker_stats: {
         attack: attacker.attack,
