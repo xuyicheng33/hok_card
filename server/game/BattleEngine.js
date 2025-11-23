@@ -33,9 +33,10 @@ class BattleEngine {
     console.log(`   攻击方: ATK:${attacker.attack} 暴击:${(attacker.crit_rate*100).toFixed(1)}% 暴伤:${(attacker.crit_damage*100).toFixed(1)}%`);
     console.log(`   防守方: HP:${target.health}/${target.max_health} 护甲:${target.armor}`);
     
-    // 计算基础伤害
-    let baseDamage = Math.max(0, attacker.attack - target.armor);
-    console.log(`   💥 基础伤害 = max(0, ${attacker.attack} - ${target.armor}) = ${baseDamage}`);
+    // 计算基础伤害（新公式：攻击力 × 200/(护甲+200)）
+    let baseDamage = attacker.attack * (200 / (target.armor + 200));
+    const damageReduction = (target.armor / (target.armor + 200) * 100).toFixed(1);
+    console.log(`   💥 基础伤害 = ${attacker.attack} × (200/${target.armor + 200}) = ${baseDamage.toFixed(1)} (减伤率:${damageReduction}%)`);
     
     // 🎯 澜的被动技能：狩猎（目标血量<50%时增伤30%）
     if (attacker.card_name === '澜' && target.health < target.max_health * 0.5) {

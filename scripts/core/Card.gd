@@ -301,8 +301,8 @@ func calculate_damage_to(target: Card) -> Dictionary:
 	if not target:
 		return {"success": false, "error": "invalid_target"}
 	
-	# 1. 计算基础伤害（攻击力 - 护甲）
-	var base_damage = max(0, get_effective_attack() - target.armor)
+	# 1. 计算基础伤害（新公式：攻击力 × 200/(护甲+200)）
+	var base_damage = get_effective_attack() * (200.0 / (target.armor + 200.0))
 	
 	# 2. 判定是否暴击
 	var is_critical = randf() < crit_rate
