@@ -1010,7 +1010,12 @@ func _on_server_turn_changed(turn_data: Dictionary):
 	# 发送技能点变化信号
 	skill_points_changed.emit(player_skill_points, enemy_skill_points)
 	
-	# 🎯 同步行动点（从服务器）
+	# ⚠️ 如果只是技能点更新，不同步行动点！
+	if is_skill_points_only:
+		print("✅ 技能点更新完成（不同步行动点，不切换回合）")
+		return
+	
+	# 🎯 只在真正的回合切换时同步行动点
 	var blue_actions = turn_data.get("blue_actions_used", 0)
 	var red_actions = turn_data.get("red_actions_used", 0)
 	
@@ -1023,15 +1028,10 @@ func _on_server_turn_changed(turn_data: Dictionary):
 		player_actions_used = red_actions
 		enemy_actions_used = blue_actions
 	
-	print("🎯 服务器行动点同步: 我方%d/3, 敌方%d/3" % [player_actions_used, enemy_actions_used])
+	print("🎯 回合切换，服务器行动点同步: 我方%d/3, 敌方%d/3" % [player_actions_used, enemy_actions_used])
 	
 	# 发送行动点变化信号
 	actions_changed.emit(player_actions_used, enemy_actions_used)
-	
-	# 如果只是技能点更新，不进行回合切换
-	if is_skill_points_only:
-		print("✅ 技能点更新完成（不切换回合）")
-		return
 	
 	# 以下是真正的回合切换逻辑
 	var new_turn = turn_data.get("turn", 1)
