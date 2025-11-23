@@ -231,13 +231,17 @@ wss.on('connection', (ws) => {
             console.log('[行动点] 红方/客户端 使用 → %d/3', room.gameState.redActionsUsed);
           }
           
-          // 广播攻击结果
+          // 广播攻击结果（包含行动点信息）
           room.players.forEach(playerId => {
             sendToClient(playerId, {
               type: 'opponent_action',
               action: 'attack',
               data: result,
-              from: clientId
+              from: clientId,
+              // 🎯 附加行动点信息
+              blue_actions_used: room.gameState.blueActionsUsed,
+              red_actions_used: room.gameState.redActionsUsed,
+              actions_per_turn: room.gameState.actionsPerTurn
             });
           });
         } else if (data.action === 'skill') {
@@ -305,13 +309,17 @@ wss.on('connection', (ws) => {
                   console.log('[行动点] 红方/客户端 使用 → %d/3', gameState.redActionsUsed);
                 }
                 
-                // 广播技能结果给双方
+                // 广播技能结果给双方（包含行动点信息）
                 room.players.forEach(playerId => {
                   sendToClient(playerId, {
                     type: 'opponent_action',
                     action: 'skill',
                     data: result,
-                    from_player_id: clientId
+                    from_player_id: clientId,
+                    // 🎯 附加行动点信息
+                    blue_actions_used: gameState.blueActionsUsed,
+                    red_actions_used: gameState.redActionsUsed,
+                    actions_per_turn: gameState.actionsPerTurn
                   });
                 });
                 
@@ -428,6 +436,10 @@ wss.on('connection', (ws) => {
               is_my_turn: isMyTurn,
               host_skill_points: gameState.hostSkillPoints,
               guest_skill_points: gameState.guestSkillPoints,
+              // 🎯 行动点信息
+              blue_actions_used: gameState.blueActionsUsed,
+              red_actions_used: gameState.redActionsUsed,
+              actions_per_turn: gameState.actionsPerTurn,
               passive_results: passiveResults  // 包含被动技能结果
             });
           });

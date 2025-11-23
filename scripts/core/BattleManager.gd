@@ -946,6 +946,21 @@ func _on_opponent_action_received(action_data: Dictionary):
 	
 	print("收到服务器操作: %s (来自: %s, 是否自己: %s)" % [action_data.action, from_player_id, is_my_action])
 	
+	# 🎯 同步行动点（如果服务器提供了）
+	if action_data.has("blue_actions_used") and action_data.has("red_actions_used"):
+		var blue_actions = action_data.get("blue_actions_used", 0)
+		var red_actions = action_data.get("red_actions_used", 0)
+		
+		if NetworkManager.is_host:
+			player_actions_used = blue_actions
+			enemy_actions_used = red_actions
+		else:
+			player_actions_used = red_actions
+			enemy_actions_used = blue_actions
+		
+		print("🎯 行动点同步: 我方%d/3, 敌方%d/3" % [player_actions_used, enemy_actions_used])
+		actions_changed.emit(player_actions_used, enemy_actions_used)
+	
 	match action_data.action:
 		"attack":
 			# ✅ 攻击结果双方都需要处理（服务器权威）
@@ -981,6 +996,24 @@ func _on_server_turn_changed(turn_data: Dictionary):
 	
 	# 发送技能点变化信号
 	skill_points_changed.emit(player_skill_points, enemy_skill_points)
+	
+	# 🎯 同步行动点（从服务器）
+	var blue_actions = turn_data.get("blue_actions_used", 0)
+	var red_actions = turn_data.get("red_actions_used", 0)
+	
+	if NetworkManager.is_host:
+		# 房主视角：我方=blue，敌方=red
+		player_actions_used = blue_actions
+		enemy_actions_used = red_actions
+	else:
+		# 客户端视角：我方=red，敌方=blue
+		player_actions_used = red_actions
+		enemy_actions_used = blue_actions
+	
+	print("🎯 服务器行动点同步: 我方%d/3, 敌方%d/3" % [player_actions_used, enemy_actions_used])
+	
+	# 发送行动点变化信号
+	actions_changed.emit(player_actions_used, enemy_actions_used)
 	
 	# 如果只是技能点更新，不进行回合切换
 	if is_skill_points_only:
