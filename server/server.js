@@ -43,6 +43,23 @@ function broadcastToRoom(roomId, message, excludeClient = null) {
   });
 }
 
+// 💰 计算金币收入
+function calculateGoldIncome(currentGold) {
+  const baseIncome = 5;         // 基础收入
+  const interestRate = 0.1;     // 利息率10%
+  const maxInterest = 5;        // 利息上限5金币
+  
+  const interest = Math.min(Math.floor(currentGold * interestRate), maxInterest);
+  const totalIncome = baseIncome + interest;
+  
+  return {
+    base: baseIncome,
+    interest: interest,
+    total: totalIncome,
+    newGold: currentGold + totalIncome
+  };
+}
+
 // 初始化游戏状态
 function initGameState(roomId) {
   const room = rooms.get(roomId);
@@ -83,7 +100,10 @@ function initGameState(roomId) {
     // 🎯 行动点系统（新增）
     blueActionsUsed: 0,   // 蓝方已使用行动次数
     redActionsUsed: 0,    // 红方已使用行动次数
-    actionsPerTurn: 3     // 每回合行动次数上限
+    actionsPerTurn: 3,     // 每回合行动次数上限
+    // 💰 金币系统（新增）
+    hostGold: 10,         // 房主金币
+    guestGold: 10         // 客户端金币
   };
   
   // 创建战斗引擎
@@ -210,7 +230,10 @@ wss.on('connection', (ws) => {
                 red_cards_count: room.gameState.redCards.length,
                 // 🎯 初始技能点和行动点
                 initial_skill_points: 4,
-                actions_per_turn: 3
+                actions_per_turn: 3,
+                // 💰 初始金币（新增）
+                host_gold: room.gameState.hostGold,
+                guest_gold: room.gameState.guestGold
               });
               console.log('[游戏开始]', data.room_id);
             }, 500);
@@ -655,10 +678,32 @@ wss.on('connection', (ws) => {
             }
           });
           
+          // 💰 金币结算（回合结束时结算，下回合开始时可用）
+          let goldIncome = null;
+          if (isHostTurn) {
+            // 房主回合结束，结算房主金币
+            goldIncome = calculateGoldIncome(gameState.hostGold);
+            gameState.hostGold = goldIncome.newGold;
+            console.log('💰 [金币结算] 房主/蓝方');
+            console.log('   当前金币: %d → %d', goldIncome.newGold - goldIncome.total, goldIncome.newGold);
+            console.log('   基础收入: +%d, 利息: +%d (总收入: +%d)', 
+              goldIncome.base, goldIncome.interest, goldIncome.total);
+          } else {
+            // 客户端回合结束，结算客户端金币
+            goldIncome = calculateGoldIncome(gameState.guestGold);
+            gameState.guestGold = goldIncome.newGold;
+            console.log('💰 [金币结算] 客户端/红方');
+            console.log('   当前金币: %d → %d', goldIncome.newGold - goldIncome.total, goldIncome.newGold);
+            console.log('   基础收入: +%d, 利息: +%d (总收入: +%d)', 
+              goldIncome.base, goldIncome.interest, goldIncome.total);
+          }
+          
           // 📊 回合切换总结
           console.log('───────────────────────────────────────────────────────');
           console.log('   技能点: 房主 %d/6 | 客户端 %d/6', 
             gameState.hostSkillPoints, gameState.guestSkillPoints);
+          console.log('   金币: 房主 💰%d | 客户端 💰%d',
+            gameState.hostGold, gameState.guestGold);
           const blueRemaining = gameState.actionsPerTurn - gameState.blueActionsUsed;
           const redRemaining = gameState.actionsPerTurn - gameState.redActionsUsed;
           console.log('   行动点: 蓝方已用%d剩余%d | 红方已用%d剩余%d',
@@ -702,7 +747,11 @@ wss.on('connection', (ws) => {
               blue_actions_used: gameState.blueActionsUsed,
               red_actions_used: gameState.redActionsUsed,
               actions_per_turn: gameState.actionsPerTurn,
-              passive_results: passiveResults  // 包含被动技能结果
+              passive_results: passiveResults,  // 包含被动技能结果
+              // 💰 金币信息（新增）
+              host_gold: gameState.hostGold,
+              guest_gold: gameState.guestGold,
+              gold_income: goldIncome  // 本次收入详情（base, interest, total, newGold）
             });
           });
         }

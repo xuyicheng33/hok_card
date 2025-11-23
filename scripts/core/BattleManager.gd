@@ -45,6 +45,10 @@ var actions_per_turn: int = 3     # 每回合行动次数
 var player_actions_used: int = 0  # 玩家已使用行动次数
 var enemy_actions_used: int = 0   # 敌人已使用行动次数
 
+# 💰 金币系统（新增）
+var player_gold: int = 10         # 玩家金币
+var enemy_gold: int = 10          # 敌人金币
+
 # 战斗结果
 var battle_result: Dictionary = {}
 
@@ -64,6 +68,7 @@ signal state_changed(new_state)
 signal card_died(card: Card, is_player: bool)
 signal skill_points_changed(player_points: int, enemy_points: int)
 signal actions_changed(player_actions: int, enemy_actions: int)  # 🎯 行动点变化信号
+signal gold_changed(player_gold: int, enemy_gold: int, income_data: Dictionary)  # 💰 金币变化信号
 signal passive_skill_triggered(card: Card, skill_name: String, effect: String, details: Dictionary)
 signal skill_executed(skill_data: Dictionary)  # 🌐 在线模式技能执行信号
 
@@ -1025,6 +1030,32 @@ func _on_server_turn_changed(turn_data: Dictionary):
 	
 	# 发送技能点变化信号
 	skill_points_changed.emit(player_skill_points, enemy_skill_points)
+	
+	# 💰 同步金币（如果有的话）
+	var host_gold_data = turn_data.get("host_gold", null)
+	var guest_gold_data = turn_data.get("guest_gold", null)
+	var gold_income_data = turn_data.get("gold_income", {})
+	
+	if host_gold_data != null and guest_gold_data != null:
+		if NetworkManager.is_host:
+			# 房主视角：我方=host，敌方=guest
+			player_gold = host_gold_data
+			enemy_gold = guest_gold_data
+		else:
+			# 客户端视角：我方=guest，敌方=host
+			player_gold = guest_gold_data
+			enemy_gold = host_gold_data
+		
+		print("💰 服务器金币同步: 我方💰%d, 敌方💰%d" % [player_gold, enemy_gold])
+		if gold_income_data:
+			print("   本次收入: 基础+%d, 利息+%d, 总计+%d" % [
+				gold_income_data.get("base", 0),
+				gold_income_data.get("interest", 0),
+				gold_income_data.get("total", 0)
+			])
+		
+		# 发送金币变化信号
+		gold_changed.emit(player_gold, enemy_gold, gold_income_data)
 	
 	# ⚠️ 如果只是技能点更新，不同步行动点！
 	if is_skill_points_only:
