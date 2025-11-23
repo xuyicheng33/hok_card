@@ -48,19 +48,22 @@ function initGameState(roomId) {
   const room = rooms.get(roomId);
   if (!room) return;
   
-  // 创建初始卡牌状态（health 应该等于 max_health）
-  const gongsunliData = cardDB.getCard('gongsunli_003');
+  // 🎯 创建初始卡牌状态：澜+孙尚香 vs 公孙离+瑶
   const lanData = cardDB.getCard('lan_002');
-  const duoliyaData = cardDB.getCard('duoliya_001');
+  const sunshangxiangData = cardDB.getCard('sunshangxiang_004');
+  const gongsunliData = cardDB.getCard('gongsunli_003');
+  const yaoData = cardDB.getCard('yao_005');
   
+  // 蓝方：澜 + 孙尚香
   const blueCards = [
-    { id: 'blue_gongsunli', ...gongsunliData, health: gongsunliData.max_health, shield: 0 },
-    { id: 'blue_lan', ...lanData, health: lanData.max_health, shield: 0 }
+    { id: 'lan_002_blue_0', ...lanData, health: lanData.max_health, shield: 0 },
+    { id: 'sunshangxiang_004_blue_1', ...sunshangxiangData, health: sunshangxiangData.max_health, shield: 0 }
   ];
   
+  // 红方：公孙离 + 瑶
   const redCards = [
-    { id: 'red_duoliya', ...duoliyaData, health: duoliyaData.max_health, shield: 0 },
-    { id: 'red_lan', ...lanData, health: lanData.max_health, shield: 0 }
+    { id: 'gongsunli_003_red_0', ...gongsunliData, health: gongsunliData.max_health, shield: 0 },
+    { id: 'yao_005_red_1', ...yaoData, health: yaoData.max_health, shield: 0 }
   ];
   
   room.gameState = {
@@ -69,7 +72,10 @@ function initGameState(roomId) {
     currentTurn: 1,  // 回合从1开始
     currentPlayer: 'host',  // 房主先手
     hostSkillPoints: 4,  // 房主技能点
-    guestSkillPoints: 4  // 客户端技能点
+    guestSkillPoints: 4,  // 客户端技能点
+    // 🎯 为BattleEngine添加蓝/红方技能点映射
+    blueSkillPoints: 4,  // 蓝方技能点（房主）
+    redSkillPoints: 4    // 红方技能点（客户端）
   };
   
   // 创建战斗引擎
@@ -206,6 +212,10 @@ wss.on('connection', (ws) => {
             return;
           }
           
+          // 🎯 同步技能点（孙尚香被动可能修改了技能点）
+          gameState.hostSkillPoints = gameState.blueSkillPoints;
+          gameState.guestSkillPoints = gameState.redSkillPoints;
+          
           // 广播攻击结果
           room.players.forEach(playerId => {
             sendToClient(playerId, {
@@ -262,8 +272,10 @@ wss.on('connection', (ws) => {
                 // ✅ 扣除技能点（使用Math.max确保不为负）
                 if (isHost) {
                   gameState.hostSkillPoints = Math.max(0, gameState.hostSkillPoints - skillCost);
+                  gameState.blueSkillPoints = gameState.hostSkillPoints;  // 同步蓝方
                 } else {
                   gameState.guestSkillPoints = Math.max(0, gameState.guestSkillPoints - skillCost);
+                  gameState.redSkillPoints = gameState.guestSkillPoints;  // 同步红方
                 }
                 
                 console.log('[技能成功]', result.effect_type, 
@@ -315,10 +327,12 @@ wss.on('connection', (ws) => {
           if (gameState.currentTurn > 2) {
             if (isHostTurn) {
               gameState.hostSkillPoints = Math.min(6, gameState.hostSkillPoints + 1);
-              console.log('[技能点] 房主 +1 → ', gameState.hostSkillPoints);
+              gameState.blueSkillPoints = gameState.hostSkillPoints;  // 同步蓝方
+              console.log('[技能点] 房主/蓝方 +1 → ', gameState.hostSkillPoints);
             } else {
               gameState.guestSkillPoints = Math.min(6, gameState.guestSkillPoints + 1);
-              console.log('[技能点] 客户端 +1 → ', gameState.guestSkillPoints);
+              gameState.redSkillPoints = gameState.guestSkillPoints;  // 同步红方
+              console.log('[技能点] 客户端/红方 +1 → ', gameState.guestSkillPoints);
             }
           }
           
