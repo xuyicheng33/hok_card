@@ -908,39 +908,113 @@ func create_1v1_cards():
 
 ## 创建在线模式默认卡牌（带唯一ID）
 func create_default_online_cards():
-	print("🌐 创建在线模式默认2v2卡牌...")
+	print("🌐 创建在线模式卡牌...")
 	
-	# 🎯 创建蓝方卡牌：澜 + 孙尚香
+	# 🎯 从Engine元数据读取服务器发送的卡牌数据
+	if Engine.has_meta("online_blue_cards") and Engine.has_meta("online_red_cards"):
+		var blue_cards_data = Engine.get_meta("online_blue_cards")
+		var red_cards_data = Engine.get_meta("online_red_cards")
+		
+		print("📦 读取服务器卡牌数据: 蓝方%d张, 红方%d张" % [blue_cards_data.size(), red_cards_data.size()])
+		
+		# 清除元数据（已使用）
+		Engine.remove_meta("online_blue_cards")
+		Engine.remove_meta("online_red_cards")
+		
+		# 根据服务器数据创建卡牌
+		var blue_cards = []
+		var red_cards = []
+		
+		# 创建蓝方卡牌
+		for card_data in blue_cards_data:
+			var card = Card.new(
+				card_data.card_name,
+				"",  # description
+				card_data.attack,
+				card_data.max_health,
+				card_data.armor,
+				card_data.skill_name,
+				"",  # skill_description
+				null  # skill_effect
+			)
+			card.card_id = card_data.id
+			card.health = card_data.health
+			card.shield = card_data.shield
+			card.crit_rate = card_data.crit_rate
+			card.crit_damage = card_data.crit_damage
+			card.skill_cost = card_data.skill_cost
+			blue_cards.append(card)
+			print("   创建蓝方卡牌: %s (ID: %s)" % [card.card_name, card.card_id])
+		
+		# 创建红方卡牌
+		for card_data in red_cards_data:
+			var card = Card.new(
+				card_data.card_name,
+				"",  # description
+				card_data.attack,
+				card_data.max_health,
+				card_data.armor,
+				card_data.skill_name,
+				"",  # skill_description
+				null  # skill_effect
+			)
+			card.card_id = card_data.id
+			card.health = card_data.health
+			card.shield = card_data.shield
+			card.crit_rate = card_data.crit_rate
+			card.crit_damage = card_data.crit_damage
+			card.skill_cost = card_data.skill_cost
+			red_cards.append(card)
+			print("   创建红方卡牌: %s (ID: %s)" % [card.card_name, card.card_id])
+		
+		# 🌐 根据is_host决定哪方是"我方"
+		if NetworkManager.is_host:
+			# 房主：蓝方是我方，红方是对方
+			test_player_cards = blue_cards
+			test_enemy_cards = red_cards
+			var player_names = [c.card_name for c in blue_cards]
+			var enemy_names = [c.card_name for c in red_cards]
+			print("🌐 房主视角：我方=蓝方(%s), 对方=红方(%s)" % ["+".join(player_names), "+".join(enemy_names)])
+		else:
+			# 客户端：红方是我方，蓝方是对方
+			test_player_cards = red_cards
+			test_enemy_cards = blue_cards
+			var player_names = [c.card_name for c in red_cards]
+			var enemy_names = [c.card_name for c in blue_cards]
+			print("🌐 客户端视角：我方=红方(%s), 对方=蓝方(%s)" % ["+".join(player_names), "+".join(enemy_names)])
+		
+		print("🌐 在线模式卡牌创建完成（从服务器数据）")
+	else:
+		print("⚠️ 警告：未找到服务器卡牌数据，使用默认卡牌")
+		# 兜底逻辑：使用默认卡牌
+		_create_fallback_online_cards()
+
+## 创建兜底的在线模式卡牌（当服务器数据丢失时）
+func _create_fallback_online_cards():
+	print("🔄 使用兜底卡牌配置...")
+	# 原有的默认卡牌逻辑
 	var blue_lan = CardDatabase.get_card("lan_002")
 	var blue_sunshangxiang = CardDatabase.get_card("sunshangxiang_004")
-	
-	# 🎯 创建红方卡牌：公孙离 + 朵莉亚
 	var red_gongsunli = CardDatabase.get_card("gongsunli_003")
 	var red_duoliya = CardDatabase.get_card("duoliya_001")
 	
 	if not blue_lan or not blue_sunshangxiang or not red_gongsunli or not red_duoliya:
-		print("❌ 无法获取在线模式卡牌")
+		print("❌ 无法获取兜底卡牌")
 		return
 	
-	# 确保card_id唯一
 	blue_lan.card_id = "lan_002_blue_0"
 	blue_sunshangxiang.card_id = "sunshangxiang_004_blue_1"
 	red_gongsunli.card_id = "gongsunli_003_red_0"
 	red_duoliya.card_id = "duoliya_001_red_1"
 	
-	# 🌐 根据is_host决定哪方是"我方"
 	if NetworkManager.is_host:
-		# 房主：蓝方是我方，红方是对方
 		test_player_cards = [blue_lan, blue_sunshangxiang]
 		test_enemy_cards = [red_gongsunli, red_duoliya]
-		print("🌐 房主视角：我方=蓝方(澜+孙尚香), 对方=红方(公孙离+朵莉亚)")
 	else:
-		# 客户端：红方是我方，蓝方是对方
 		test_player_cards = [red_gongsunli, red_duoliya]
 		test_enemy_cards = [blue_lan, blue_sunshangxiang]
-		print("🌐 客户端视角：我方=红方(公孙离+朵莉亚), 对方=蓝方(澜+孙尚香)")
 	
-	print("🌐 在线模式卡牌分配完成")
+	print("🔄 兜底卡牌配置完成")
 
 ## 创建2v2模式卡牌
 func create_2v2_cards():

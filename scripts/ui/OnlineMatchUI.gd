@@ -299,6 +299,14 @@ func _on_game_started(game_data: Dictionary):
 	
 	print("🎮 在线模式: %s (蓝方%d张 vs 红方%d张)" % [online_battle_mode, blue_count, red_count])
 	
+	# 🎯 保存服务器发送的卡牌数据到全局，供BattleScene使用
+	if game_data.has("blue_cards") and game_data.has("red_cards"):
+		Engine.set_meta("online_blue_cards", game_data.blue_cards)
+		Engine.set_meta("online_red_cards", game_data.red_cards)
+		print("📦 保存卡牌数据: 蓝方%d张, 红方%d张" % [game_data.blue_cards.size(), game_data.red_cards.size()])
+	else:
+		print("⚠️ 警告：服务器未发送卡牌数据！")
+	
 	# 🌐 确保NetworkManager状态正确
 	NetworkManager.connection_status = NetworkManager.ConnectionStatus.IN_GAME
 	

@@ -157,15 +157,50 @@ wss.on('connection', (ws) => {
               // 🎮 初始化游戏状态
               initGameState(data.room_id);
               
+              // 🎯 准备发送给客户端的卡牌数据（简化版，只包含必要信息）
+              const blueCardsData = room.gameState.blueCards.map(card => ({
+                id: card.id,
+                card_name: card.card_name,
+                max_health: card.max_health,
+                health: card.health,
+                attack: card.attack,
+                armor: card.armor,
+                shield: card.shield || 0,
+                crit_rate: card.crit_rate || 0,
+                crit_damage: card.crit_damage || 1.3,
+                skill_name: card.skill_name,
+                skill_cost: card.skill_cost
+              }));
+              
+              const redCardsData = room.gameState.redCards.map(card => ({
+                id: card.id,
+                card_name: card.card_name,
+                max_health: card.max_health,
+                health: card.health,
+                attack: card.attack,
+                armor: card.armor,
+                shield: card.shield || 0,
+                crit_rate: card.crit_rate || 0,
+                crit_damage: card.crit_damage || 1.3,
+                skill_name: card.skill_name,
+                skill_cost: card.skill_cost
+              }));
+              
               broadcastToRoom(data.room_id, { 
                 type: 'game_start', 
                 room_id: data.room_id, 
                 players: room.players, 
                 player_names: room.playerNames, 
                 host: room.host,
+                // 🎯 发送完整卡牌数据
+                blue_cards: blueCardsData,
+                red_cards: redCardsData,
                 // 🎯 发送卡牌数量信息，让客户端知道是几v几
                 blue_cards_count: room.gameState.blueCards.length,
-                red_cards_count: room.gameState.redCards.length
+                red_cards_count: room.gameState.redCards.length,
+                // 🎯 初始技能点和行动点
+                initial_skill_points: 4,
+                actions_per_turn: 3
               });
               console.log('[游戏开始]', data.room_id);
             }, 500);
