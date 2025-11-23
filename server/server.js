@@ -48,26 +48,26 @@ function initGameState(roomId) {
   const room = rooms.get(roomId);
   if (!room) return;
   
-  // 🎯 创建初始卡牌状态 3v3：孙尚香+澜+大乔 vs 公孙离+瑶+杨玉环
+  // 🎯 创建初始卡牌状态 3v3：瑶+大乔+公孙离 vs 澜+孙尚香+朵莉亚
   const lanData = cardDB.getCard('lan_002');
   const sunshangxiangData = cardDB.getCard('sunshangxiang_004');
   const gongsunliData = cardDB.getCard('gongsunli_003');
   const yaoData = cardDB.getCard('yao_005');
   const daqiaoData = cardDB.getCard('daqiao_006');
-  const yangyuhuanData = cardDB.getCard('yangyuhuan_008');
+  const duoliyaData = cardDB.getCard('duoliya_001');
   
-  // 蓝方（房主）：孙尚香 + 澜 + 大乔
+  // 蓝方（房主）：瑶 + 大乔 + 公孙离
   const blueCards = [
-    { id: 'sunshangxiang_004_blue_0', ...sunshangxiangData, health: sunshangxiangData.max_health, shield: 0 },
-    { id: 'lan_002_blue_1', ...lanData, health: lanData.max_health, shield: 0 },
-    { id: 'daqiao_006_blue_2', ...daqiaoData, health: daqiaoData.max_health, shield: 0, daqiao_passive_used: false }
+    { id: 'yao_005_blue_0', ...yaoData, health: yaoData.max_health, shield: 0 },
+    { id: 'daqiao_006_blue_1', ...daqiaoData, health: daqiaoData.max_health, shield: 0, daqiao_passive_used: false },
+    { id: 'gongsunli_003_blue_2', ...gongsunliData, health: gongsunliData.max_health, shield: 0 }
   ];
   
-  // 红方（客户端）：公孙离 + 瑶 + 杨玉环
+  // 红方（客户端）：澜 + 孙尚香 + 朵莉亚
   const redCards = [
-    { id: 'gongsunli_003_red_0', ...gongsunliData, health: gongsunliData.max_health, shield: 0 },
-    { id: 'yao_005_red_1', ...yaoData, health: yaoData.max_health, shield: 0 },
-    { id: 'yangyuhuan_008_red_2', ...yangyuhuanData, health: yangyuhuanData.max_health, shield: 0 }
+    { id: 'lan_002_red_0', ...lanData, health: lanData.max_health, shield: 0 },
+    { id: 'sunshangxiang_004_red_1', ...sunshangxiangData, health: sunshangxiangData.max_health, shield: 0 },
+    { id: 'duoliya_001_red_2', ...duoliyaData, health: duoliyaData.max_health, shield: 0 }
   ];
   
   room.gameState = {
