@@ -285,6 +285,20 @@ func _on_game_started(game_data: Dictionary):
 	print("游戏即将开始...")
 	status_label.text = "游戏开始！"
 	
+	# 🎯 根据服务器发送的卡牌数量判断战斗模式
+	var blue_count = game_data.get("blue_cards_count", 2)
+	var red_count = game_data.get("red_cards_count", 2)
+	var online_battle_mode = "online_2v2"  # 默认2v2
+	
+	if blue_count == 3 and red_count == 3:
+		online_battle_mode = "online_3v3"
+	elif blue_count == 2 and red_count == 2:
+		online_battle_mode = "online_2v2"
+	elif blue_count == 1 and red_count == 1:
+		online_battle_mode = "online_1v1"
+	
+	print("🎮 在线模式: %s (蓝方%d张 vs 红方%d张)" % [online_battle_mode, blue_count, red_count])
+	
 	# 🌐 确保NetworkManager状态正确
 	NetworkManager.connection_status = NetworkManager.ConnectionStatus.IN_GAME
 	
@@ -295,7 +309,9 @@ func _on_game_started(game_data: Dictionary):
 	if BattleManager != null:
 		BattleManager.call_deferred("set", "is_online_mode", true)
 		BattleManager.call_deferred("set", "is_my_turn", NetworkManager.is_host)
-		print("🌐 在线模式设置: is_host=%s" % NetworkManager.is_host)
+		# 🎯 设置战斗模式（用于UI布局）
+		Engine.set_meta("online_battle_mode", online_battle_mode)
+		print("🌐 在线模式设置: is_host=%s, mode=%s" % [NetworkManager.is_host, online_battle_mode])
 	else:
 		print("⚠️ BattleManager暂时不可用，将在场景切换后设置")
 	

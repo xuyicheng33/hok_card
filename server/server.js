@@ -162,7 +162,10 @@ wss.on('connection', (ws) => {
                 room_id: data.room_id, 
                 players: room.players, 
                 player_names: room.playerNames, 
-                host: room.host 
+                host: room.host,
+                // 🎯 发送卡牌数量信息，让客户端知道是几v几
+                blue_cards_count: room.gameState.blueCards.length,
+                red_cards_count: room.gameState.redCards.length
               });
               console.log('[游戏开始]', data.room_id);
             }, 500);

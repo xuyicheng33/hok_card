@@ -712,7 +712,14 @@ func detect_battle_mode():
 	# 🌐 检查是否为在线对战模式
 	if BattleManager.is_online_mode:
 		print("🌐 在线对战模式 - 等待网络同步卡牌数据")
-		battle_mode = "online_2v2"
+		# 🎯 从元数据获取在线模式类型（由OnlineMatchUI设置）
+		if Engine.has_meta("online_battle_mode"):
+			battle_mode = Engine.get_meta("online_battle_mode")
+			Engine.remove_meta("online_battle_mode")  # 使用后清除
+			print("🎮 在线模式类型: %s" % battle_mode)
+		else:
+			battle_mode = "online_2v2"  # 默认2v2
+			print("⚠️ 未找到在线模式类型，使用默认: %s" % battle_mode)
 		# 在线模式下不创建测试卡牌，直接返回
 		return
 	
@@ -735,7 +742,10 @@ func detect_battle_mode():
 
 ## 根据模式获取主题颜色
 func get_theme_color_for_mode() -> Color:
-	match battle_mode:
+	# 🎯 处理在线模式：online_3v3 → 3v3, online_2v2 → 2v2
+	var mode_type = battle_mode.replace("online_", "")
+	
+	match mode_type:
 		"1v1":
 			return Color(1.0, 0.8, 0.2)  # 金色 - 精英对决
 		"2v2":
@@ -753,7 +763,10 @@ func get_card_area_height_for_mode() -> int:
 	var is_full_hd = height_viewport_size.x >= 1920 and height_viewport_size.y >= 1080
 	var is_high_resolution = height_viewport_size.y >= 900 # 高分辨率检测
 	
-	match battle_mode:
+	# 🎯 处理在线模式：online_3v3 → 3v3, online_2v2 → 2v2
+	var mode_type = battle_mode.replace("online_", "")
+	
+	match mode_type:
 		"1v1":
 			if is_full_hd:
 				return 185  # 比之前的147稍大一些
@@ -799,7 +812,10 @@ func get_card_spacing_for_mode() -> int:
 	var is_full_hd = spacing_viewport_size.x >= 1920 and spacing_viewport_size.y >= 1080
 	var is_high_resolution = spacing_viewport_size.x >= 1600 # 高分辨率检测
 	
-	match battle_mode:
+	# 🎯 处理在线模式：online_3v3 → 3v3, online_2v2 → 2v2
+	var mode_type = battle_mode.replace("online_", "")
+	
+	match mode_type:
 		"1v1":
 			if is_full_hd:
 				return 100  # 增加间距以适应更大的卡牌尺寸
