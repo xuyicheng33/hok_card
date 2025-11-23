@@ -220,6 +220,17 @@ wss.on('connection', (ws) => {
           room.gameState.hostSkillPoints = room.gameState.blueSkillPoints;
           room.gameState.guestSkillPoints = room.gameState.redSkillPoints;
           
+          // 🎯 使用行动点
+          const isHost = (clientId === room.host);
+          const isHostAction = isHost;
+          if (isHostAction) {
+            room.gameState.blueActionsUsed++;
+            console.log('[行动点] 蓝方/房主 使用 → %d/3', room.gameState.blueActionsUsed);
+          } else {
+            room.gameState.redActionsUsed++;
+            console.log('[行动点] 红方/客户端 使用 → %d/3', room.gameState.redActionsUsed);
+          }
+          
           // 广播攻击结果
           room.players.forEach(playerId => {
             sendToClient(playerId, {
@@ -285,6 +296,15 @@ wss.on('connection', (ws) => {
                 console.log('[技能成功]', result.effect_type, 
                   `扣除${skillCost}点 剩余:房主${gameState.hostSkillPoints} 客户端${gameState.guestSkillPoints}`);
                 
+                // 🎯 使用行动点
+                if (isHost) {
+                  gameState.blueActionsUsed++;
+                  console.log('[行动点] 蓝方/房主 使用 → %d/3', gameState.blueActionsUsed);
+                } else {
+                  gameState.redActionsUsed++;
+                  console.log('[行动点] 红方/客户端 使用 → %d/3', gameState.redActionsUsed);
+                }
+                
                 // 广播技能结果给双方
                 room.players.forEach(playerId => {
                   sendToClient(playerId, {
@@ -326,6 +346,15 @@ wss.on('connection', (ws) => {
           // 奇数回合=房主(host)，偶数回合=客户端(guest)
           const isHostTurn = (gameState.currentTurn % 2 === 1);
           gameState.currentPlayer = isHostTurn ? 'host' : 'guest';
+          
+          // 🎯 重置行动点（新回合开始）
+          if (isHostTurn) {
+            gameState.blueActionsUsed = 0;
+            console.log('[行动点] 蓝方/房主 重置 → 0/3');
+          } else {
+            gameState.redActionsUsed = 0;
+            console.log('[行动点] 红方/客户端 重置 → 0/3');
+          }
           
           // 🌟 增加技能点（第3回合开始，上限6点）
           if (gameState.currentTurn > 2) {
