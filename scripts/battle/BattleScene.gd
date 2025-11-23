@@ -869,35 +869,35 @@ func create_1v1_cards():
 func create_default_online_cards():
 	print("🌐 创建在线模式默认2v2卡牌...")
 	
-	# 创建蓝方卡牌：公孙离 + 澜
-	var blue_gongsunli = CardDatabase.get_card("gongsunli_003")
+	# 🎯 创建蓝方卡牌：澜 + 孙尚香
 	var blue_lan = CardDatabase.get_card("lan_002")
+	var blue_sunshangxiang = CardDatabase.get_card("sunshangxiang_004")
 	
-	# 创建红方卡牌：朵莉亚 + 澜
-	var red_duoliya = CardDatabase.get_card("duoliya_001")
-	var red_lan = CardDatabase.get_card("lan_002")
+	# 🎯 创建红方卡牌：公孙离 + 瑶
+	var red_gongsunli = CardDatabase.get_card("gongsunli_003")
+	var red_yao = CardDatabase.get_card("yao_005")
 	
-	if not blue_gongsunli or not blue_lan or not red_duoliya or not red_lan:
+	if not blue_lan or not blue_sunshangxiang or not red_gongsunli or not red_yao:
 		print("❌ 无法获取在线模式卡牌")
 		return
 	
 	# 确保card_id唯一
-	blue_gongsunli.card_id = "blue_gongsunli"
-	blue_lan.card_id = "blue_lan"
-	red_duoliya.card_id = "red_duoliya"
-	red_lan.card_id = "red_lan"
+	blue_lan.card_id = "lan_002_blue_0"
+	blue_sunshangxiang.card_id = "sunshangxiang_004_blue_1"
+	red_gongsunli.card_id = "gongsunli_003_red_0"
+	red_yao.card_id = "yao_005_red_1"
 	
 	# 🌐 根据is_host决定哪方是"我方"
 	if NetworkManager.is_host:
 		# 房主：蓝方是我方，红方是对方
-		test_player_cards = [blue_gongsunli, blue_lan]
-		test_enemy_cards = [red_duoliya, red_lan]
-		print("🌐 房主视角：我方=蓝方(公孙离+澜), 对方=红方(朵莉亚+澜)")
+		test_player_cards = [blue_lan, blue_sunshangxiang]
+		test_enemy_cards = [red_gongsunli, red_yao]
+		print("🌐 房主视角：我方=蓝方(澜+孙尚香), 对方=红方(公孙离+瑶)")
 	else:
 		# 客户端：红方是我方，蓝方是对方
-		test_player_cards = [red_duoliya, red_lan]
-		test_enemy_cards = [blue_gongsunli, blue_lan]
-		print("🌐 客户端视角：我方=红方(朵莉亚+澜), 对方=蓝方(公孙离+澜)")
+		test_player_cards = [red_gongsunli, red_yao]
+		test_enemy_cards = [blue_lan, blue_sunshangxiang]
+		print("🌐 客户端视角：我方=红方(公孙离+瑶), 对方=蓝方(澜+孙尚香)")
 	
 	print("🌐 在线模式卡牌分配完成")
 
