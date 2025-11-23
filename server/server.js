@@ -196,6 +196,20 @@ wss.on('connection', (ws) => {
           return;
         }
         
+        // 🔒 验证行动点（攻击和技能需要检查）
+        if (data.action === 'attack' || data.action === 'skill') {
+          const currentActions = isHost ? room.gameState.blueActionsUsed : room.gameState.redActionsUsed;
+          if (currentActions >= room.gameState.actionsPerTurn) {
+            console.error('[操作失败] 行动次数已用尽:', currentActions, '/', room.gameState.actionsPerTurn);
+            sendToClient(clientId, {
+              type: 'action_failed',
+              action: data.action,
+              error: '行动次数已用尽'
+            });
+            return;
+          }
+        }
+        
         let result = null;
         
         // 🎮 服务器端权威计算

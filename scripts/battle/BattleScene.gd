@@ -2166,6 +2166,11 @@ func execute_skill(caster, target = null):
 	# 如果是在线模式，服务器会返回结果后由_handle_opponent_skill处理
 	if BattleManager.is_online_mode:
 		print("🌐 在线模式：技能请求已发送到服务器")
+		# 🎯 使用行动点（重要！）
+		var should_end = BattleManager.use_action(is_player)
+		if should_end:
+			print("🎯 行动次数用尽，结束回合")
+			call_deferred("end_turn")
 		return
 	
 	if result.success:
