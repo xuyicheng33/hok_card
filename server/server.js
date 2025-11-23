@@ -48,11 +48,11 @@ function initGameState(roomId) {
   const room = rooms.get(roomId);
   if (!room) return;
   
-  // 🎯 创建初始卡牌状态：澜+孙尚香 vs 公孙离+瑶
+  // 🎯 创建初始卡牌状态：澜+孙尚香 vs 公孙离+朵莉亚
   const lanData = cardDB.getCard('lan_002');
   const sunshangxiangData = cardDB.getCard('sunshangxiang_004');
   const gongsunliData = cardDB.getCard('gongsunli_003');
-  const yaoData = cardDB.getCard('yao_005');
+  const duoliyaData = cardDB.getCard('duoliya_001');
   
   // 蓝方：澜 + 孙尚香
   const blueCards = [
@@ -60,10 +60,10 @@ function initGameState(roomId) {
     { id: 'sunshangxiang_004_blue_1', ...sunshangxiangData, health: sunshangxiangData.max_health, shield: 0 }
   ];
   
-  // 红方：公孙离 + 瑶
+  // 红方：公孙离 + 朵莉亚
   const redCards = [
     { id: 'gongsunli_003_red_0', ...gongsunliData, health: gongsunliData.max_health, shield: 0 },
-    { id: 'yao_005_red_1', ...yaoData, health: yaoData.max_health, shield: 0 }
+    { id: 'duoliya_001_red_1', ...duoliyaData, health: duoliyaData.max_health, shield: 0 }
   ];
   
   room.gameState = {
