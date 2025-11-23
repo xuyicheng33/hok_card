@@ -1095,8 +1095,16 @@ func _handle_opponent_attack(data: Dictionary):
 		
 		print("⭐ 孙尚香被动「千金重弩」触发！技能点 %d → %d" % [old_value, new_value])
 		
+		# 更新对应阵营的技能点
+		if team == "blue":
+			player_skill_points = new_value if is_card_in_player_side(attacker) else player_skill_points
+			enemy_skill_points = new_value if not is_card_in_player_side(attacker) else enemy_skill_points
+		else:  # team == "red"
+			player_skill_points = new_value if not is_card_in_player_side(attacker) else player_skill_points
+			enemy_skill_points = new_value if is_card_in_player_side(attacker) else enemy_skill_points
+		
 		# 发送技能点更新信号（让BattleScene更新UI）
-		skill_points_updated.emit(team, new_value)
+		skill_points_changed.emit(player_skill_points, enemy_skill_points)
 		
 		# 记录到消息系统
 		if message_system:
