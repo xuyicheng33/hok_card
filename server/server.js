@@ -414,7 +414,7 @@ wss.on('connection', (ws) => {
                     type: 'opponent_action',
                     action: 'skill',
                     data: result,
-                    from_player_id: clientId,
+                    from: clientId,  // ✅ 统一使用 from 字段名
                     // 🎯 附加行动点信息
                     blue_actions_used: gameState.blueActionsUsed,
                     red_actions_used: gameState.redActionsUsed,
