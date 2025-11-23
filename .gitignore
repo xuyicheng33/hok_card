@@ -8,4 +8,6 @@ builds/
 *.pck
 *.wasm
 *.zip
+*.apk
+*.apk.idsig
 hok_card.console.exe
