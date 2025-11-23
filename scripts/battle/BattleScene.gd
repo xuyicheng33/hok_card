@@ -927,20 +927,38 @@ func create_default_online_cards():
 		
 		# 创建蓝方卡牌
 		for card_data in blue_cards_data:
-			# 🎯 Card构造函数的第4个参数会同时设置health和max_health
-			# 游戏开始时所有卡牌都是满血，所以传max_health即可
-			var card = Card.new(
-				card_data.get("card_name", "未知"),
-				"",  # description
-				card_data.get("attack", 0),
-				card_data.get("max_health", 100),  # 第4参数：会同时设置health和max_health
-				card_data.get("armor", 0),
-				card_data.get("skill_name", ""),
-				"",  # skill_description
-				null  # card_image
-			)
-			# 设置卡牌ID和其他属性
-			card.card_id = card_data.get("id", "unknown")
+			# 🎯 从服务器ID提取卡牌数据库ID（例如：sunshangxiang_004_blue_0 → sunshangxiang_004）
+			var server_id = card_data.get("id", "")
+			var card_db_id = ""
+			if "_blue_" in server_id or "_red_" in server_id:
+				# 提取卡牌数据库ID（去掉_blue_0或_red_0后缀）
+				var parts = server_id.split("_")
+				if parts.size() >= 2:
+					card_db_id = parts[0] + "_" + parts[1]  # 例如：sunshangxiang_004
+			
+			# 🎯 从CardDatabase获取完整卡牌（包括图片）
+			var card = null
+			if card_db_id != "":
+				card = CardDatabase.get_card(card_db_id)
+				if card != null:
+					print("   📦 从CardDatabase加载卡牌: %s (ID: %s)" % [card.card_name, card_db_id])
+			
+			if card == null:
+				# 兜底：手动创建Card对象
+				card = Card.new(
+					card_data.get("card_name", "未知"),
+					"",  # description
+					card_data.get("attack", 0),
+					card_data.get("max_health", 100),
+					card_data.get("armor", 0),
+					card_data.get("skill_name", ""),
+					"",  # skill_description
+					null  # card_image
+				)
+				print("   ⚠️  兜底创建卡牌: %s" % card_data.get("card_name", "未知"))
+			
+			# 🎯 用服务器数据覆盖动态属性
+			card.card_id = server_id
 			# 如果服务器发送的health与max_health不同（已受伤），则覆盖health
 			var server_health = card_data.get("health", card.max_health)
 			if server_health != card.max_health:
@@ -967,20 +985,38 @@ func create_default_online_cards():
 		
 		# 创建红方卡牌
 		for card_data in red_cards_data:
-			# 🎯 Card构造函数的第4个参数会同时设置health和max_health
-			# 游戏开始时所有卡牌都是满血，所以传max_health即可
-			var card = Card.new(
-				card_data.get("card_name", "未知"),
-				"",  # description
-				card_data.get("attack", 0),
-				card_data.get("max_health", 100),  # 第4参数：会同时设置health和max_health
-				card_data.get("armor", 0),
-				card_data.get("skill_name", ""),
-				"",  # skill_description
-				null  # card_image
-			)
-			# 设置卡牌ID和其他属性
-			card.card_id = card_data.get("id", "unknown")
+			# 🎯 从服务器ID提取卡牌数据库ID（例如：gongsunli_003_red_0 → gongsunli_003）
+			var server_id = card_data.get("id", "")
+			var card_db_id = ""
+			if "_blue_" in server_id or "_red_" in server_id:
+				# 提取卡牌数据库ID（去掉_blue_0或_red_0后缀）
+				var parts = server_id.split("_")
+				if parts.size() >= 2:
+					card_db_id = parts[0] + "_" + parts[1]  # 例如：gongsunli_003
+			
+			# 🎯 从CardDatabase获取完整卡牌（包括图片）
+			var card = null
+			if card_db_id != "":
+				card = CardDatabase.get_card(card_db_id)
+				if card != null:
+					print("   📦 从CardDatabase加载卡牌: %s (ID: %s)" % [card.card_name, card_db_id])
+			
+			if card == null:
+				# 兜底：手动创建Card对象
+				card = Card.new(
+					card_data.get("card_name", "未知"),
+					"",  # description
+					card_data.get("attack", 0),
+					card_data.get("max_health", 100),
+					card_data.get("armor", 0),
+					card_data.get("skill_name", ""),
+					"",  # skill_description
+					null  # card_image
+				)
+				print("   ⚠️  兜底创建卡牌: %s" % card_data.get("card_name", "未知"))
+			
+			# 🎯 用服务器数据覆盖动态属性
+			card.card_id = server_id
 			# 如果服务器发送的health与max_health不同（已受伤），则覆盖health
 			var server_health = card_data.get("health", card.max_health)
 			if server_health != card.max_health:
