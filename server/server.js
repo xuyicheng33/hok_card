@@ -236,17 +236,18 @@ wss.on('connection', (ws) => {
           console.log('   攻击者: %s (ID: %s)', result.attacker ? result.attacker.card_name : result.attacker_id, result.attacker_id);
           console.log('   目标:   %s (ID: %s)', result.target ? result.target.card_name : result.target_id, result.target_id);
           console.log('───────────────────────────────────────────────────────');
-          console.log('   基础伤害: %d', result.base_damage);
+          console.log('   原始伤害: %d', result.original_damage || 0);
           console.log('   是否暴击: %s', result.is_critical ? '✅ 是' : '❌ 否');
           if (result.is_critical) {
-            console.log('   暴击伤害: %d', result.crit_damage);
+            console.log('   暴击后伤害: %d', result.damage || 0);
           }
           console.log('   是否闪避: %s', result.is_dodged ? '✅ 是' : '❌ 否');
           if (!result.is_dodged) {
-            console.log('   最终伤害: %d', result.final_damage);
+            console.log('   实际伤害: %d', result.damage || 0);
             if (result.target) {
-              console.log('   目标血量: %d → %d', result.target.health + result.final_damage, result.target.health);
-              console.log('   目标护盾: %d → %d', result.target.shield + Math.min(result.final_damage, result.target.shield || 0), result.target.shield);
+              const actualDamage = result.damage || 0;
+              console.log('   目标血量: %d → %d', result.target.health + actualDamage, result.target.health);
+              console.log('   目标护盾: %d → %d', (result.target.shield || 0) + Math.min(actualDamage, result.target.shield || 0), result.target.shield || 0);
             }
             console.log('   目标存活: %s', result.target_dead ? '❌ 死亡' : '✅ 存活');
           }
