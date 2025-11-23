@@ -273,10 +273,14 @@ wss.on('connection', (ws) => {
           const isHostAction = isHost;
           if (isHostAction) {
             room.gameState.blueActionsUsed++;
-            console.log('[行动点] 蓝方/房主 使用 → %d/3', room.gameState.blueActionsUsed);
+            const remaining = room.gameState.actionsPerTurn - room.gameState.blueActionsUsed;
+            console.log('[行动点] 蓝方/房主 已用%d次，剩余%d次 (%d/3)', 
+              room.gameState.blueActionsUsed, remaining, room.gameState.blueActionsUsed);
           } else {
             room.gameState.redActionsUsed++;
-            console.log('[行动点] 红方/客户端 使用 → %d/3', room.gameState.redActionsUsed);
+            const remaining = room.gameState.actionsPerTurn - room.gameState.redActionsUsed;
+            console.log('[行动点] 红方/客户端 已用%d次，剩余%d次 (%d/3)', 
+              room.gameState.redActionsUsed, remaining, room.gameState.redActionsUsed);
           }
           
           // 广播攻击结果（包含行动点信息）
@@ -394,10 +398,14 @@ wss.on('connection', (ws) => {
                 // 🎯 使用行动点
                 if (isHost) {
                   gameState.blueActionsUsed++;
-                  console.log('[行动点] 蓝方/房主 使用 → %d/3', gameState.blueActionsUsed);
+                  const remaining = gameState.actionsPerTurn - gameState.blueActionsUsed;
+                  console.log('[行动点] 蓝方/房主 已用%d次，剩余%d次 (%d/3)', 
+                    gameState.blueActionsUsed, remaining, gameState.blueActionsUsed);
                 } else {
                   gameState.redActionsUsed++;
-                  console.log('[行动点] 红方/客户端 使用 → %d/3', gameState.redActionsUsed);
+                  const remaining = gameState.actionsPerTurn - gameState.redActionsUsed;
+                  console.log('[行动点] 红方/客户端 已用%d次，剩余%d次 (%d/3)', 
+                    gameState.redActionsUsed, remaining, gameState.redActionsUsed);
                 }
                 
                 // 广播技能结果给双方（包含行动点信息）
@@ -459,10 +467,10 @@ wss.on('connection', (ws) => {
           // 🎯 重置行动点（新回合开始）
           if (isHostTurn) {
             gameState.blueActionsUsed = 0;
-            console.log('[行动点] 蓝方/房主 重置 → 0/3');
+            console.log('[行动点] 🔄 蓝方/房主 回合开始，重置为0/3（剩余3次）');
           } else {
             gameState.redActionsUsed = 0;
-            console.log('[行动点] 红方/客户端 重置 → 0/3');
+            console.log('[行动点] 🔄 红方/客户端 回合开始，重置为0/3（剩余3次）');
           }
           
           // 🌟 增加技能点（第3回合开始，上限6点）
@@ -526,8 +534,10 @@ wss.on('connection', (ws) => {
           console.log('───────────────────────────────────────────────────────');
           console.log('   技能点: 房主 %d/6 | 客户端 %d/6', 
             gameState.hostSkillPoints, gameState.guestSkillPoints);
-          console.log('   行动点: 蓝方 %d/3 | 红方 %d/3',
-            gameState.blueActionsUsed, gameState.redActionsUsed);
+          const blueRemaining = gameState.actionsPerTurn - gameState.blueActionsUsed;
+          const redRemaining = gameState.actionsPerTurn - gameState.redActionsUsed;
+          console.log('   行动点: 蓝方已用%d剩余%d | 红方已用%d剩余%d',
+            gameState.blueActionsUsed, blueRemaining, gameState.redActionsUsed, redRemaining);
           console.log('   被动触发: %d个', passiveResults.length);
           
           // 显示卡牌状态

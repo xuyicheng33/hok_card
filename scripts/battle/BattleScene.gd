@@ -2340,14 +2340,18 @@ func _on_skill_points_changed(player_points: int, enemy_points: int):
 
 ## 🎯 行动点变化处理（新增）
 func _on_actions_changed(player_actions: int, enemy_actions: int):
-	print("🎯 行动点更新: 玩家: %d/3, 敌人: %d/3" % [player_actions, enemy_actions])
+	var player_remaining = 3 - player_actions
+	var enemy_remaining = 3 - enemy_actions
+	print("🎯 行动点更新: 玩家已用 %d/3 (剩余%d), 敌人已用 %d/3 (剩余%d)" % [
+		player_actions, player_remaining, enemy_actions, enemy_remaining
+	])
 	
-	# 更新行动点显示
+	# 更新行动点显示（显示剩余次数更直观）
 	if player_actions_label and is_instance_valid(player_actions_label):
-		player_actions_label.text = "我方行动: %d/3" % player_actions
+		player_actions_label.text = "行动剩余: %d/3" % player_remaining
 	
 	if enemy_actions_label and is_instance_valid(enemy_actions_label):
-		enemy_actions_label.text = "敌方行动: %d/3" % enemy_actions
+		enemy_actions_label.text = "敌方剩余: %d/3" % enemy_remaining
 
 ## 更新技能按钮状态
 func update_skill_button_state():
