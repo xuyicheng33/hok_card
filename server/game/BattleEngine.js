@@ -107,6 +107,40 @@ class BattleEngine {
       console.log(`   ☠️  ${target.card_name} 被击败!`);
     }
     
+    // 🎯 孙尚香被动技能：千金重弩（攻击命中时50%概率获得1技能点）
+    let skillPointGained = false;
+    let skillPointChange = null;
+    
+    if (attacker.card_name === '孙尚香' && !isDodged && actualDamage > 0) {
+      const triggerChance = Math.random();
+      if (triggerChance < 0.5) {
+        // 判断攻击者所属阵营
+        const isAttackerBlue = this.state.blueCards.some(c => c.id === attackerId);
+        const currentSkillPoints = isAttackerBlue ? this.state.blueSkillPoints : this.state.redSkillPoints;
+        const maxSkillPoints = 6;
+        
+        if (currentSkillPoints < maxSkillPoints) {
+          // 增加技能点
+          if (isAttackerBlue) {
+            this.state.blueSkillPoints++;
+          } else {
+            this.state.redSkillPoints++;
+          }
+          
+          skillPointGained = true;
+          skillPointChange = {
+            team: isAttackerBlue ? 'blue' : 'red',
+            old_value: currentSkillPoints,
+            new_value: currentSkillPoints + 1
+          };
+          
+          console.log(`   ⭐ 孙尚香被动「千金重弩」触发！获得1点技能点 (${currentSkillPoints} → ${currentSkillPoints + 1})`);
+        } else {
+          console.log(`   ⭐ 孙尚香被动「千金重弩」触发！但技能点已满 (${maxSkillPoints}/${maxSkillPoints})`);
+        }
+      }
+    }
+    
     const result = {
       attacker_id: attackerId,
       target_id: targetId,
@@ -117,6 +151,9 @@ class BattleEngine {
       target_health: target.health,
       target_shield: target.shield || 0,  // 🛡️ 同步护盾值
       target_dead: target.health <= 0,
+      // 🎯 孙尚香被动技能点获取
+      passive_skill_triggered: skillPointGained,
+      skill_point_change: skillPointChange,
       // 🎯 同步卡牌属性变化（用于被动技能）
       attacker_stats: {
         attack: attacker.attack,

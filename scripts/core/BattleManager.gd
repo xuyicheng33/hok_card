@@ -1086,6 +1086,27 @@ func _handle_opponent_attack(data: Dictionary):
 		if attacker_entity and is_instance_valid(attacker_entity):
 			attacker_entity.update_display()
 	
+	# 🎯 孙尚香被动技能：千金重弩（攻击命中后获得技能点）
+	if data.get("passive_skill_triggered", false) and data.has("skill_point_change"):
+		var skill_point_change = data.skill_point_change
+		var team = skill_point_change.team
+		var old_value = skill_point_change.old_value
+		var new_value = skill_point_change.new_value
+		
+		print("⭐ 孙尚香被动「千金重弩」触发！技能点 %d → %d" % [old_value, new_value])
+		
+		# 发送技能点更新信号（让BattleScene更新UI）
+		skill_points_updated.emit(team, new_value)
+		
+		# 记录到消息系统
+		if message_system:
+			message_system.add_passive_skill(
+				attacker.card_name,
+				"千金重弩",
+				"攻击命中，获得1点技能点",
+				{}
+			)
+	
 	# 📝 记录到消息系统（如果存在）
 	if message_system:
 		if is_dodged:
