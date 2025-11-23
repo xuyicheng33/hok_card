@@ -233,8 +233,8 @@ wss.on('connection', (ws) => {
           // 📊 详细攻击日志
           console.log('═══════════════════════════════════════════════════════');
           console.log('⚔️  [攻击详情]');
-          console.log('   攻击者: %s (ID: %s)', result.attacker.card_name, result.attacker_id);
-          console.log('   目标:   %s (ID: %s)', result.target.card_name, result.target_id);
+          console.log('   攻击者: %s (ID: %s)', result.attacker ? result.attacker.card_name : result.attacker_id, result.attacker_id);
+          console.log('   目标:   %s (ID: %s)', result.target ? result.target.card_name : result.target_id, result.target_id);
           console.log('───────────────────────────────────────────────────────');
           console.log('   基础伤害: %d', result.base_damage);
           console.log('   是否暴击: %s', result.is_critical ? '✅ 是' : '❌ 否');
@@ -244,8 +244,10 @@ wss.on('connection', (ws) => {
           console.log('   是否闪避: %s', result.is_dodged ? '✅ 是' : '❌ 否');
           if (!result.is_dodged) {
             console.log('   最终伤害: %d', result.final_damage);
-            console.log('   目标血量: %d → %d', result.target.health + result.final_damage, result.target.health);
-            console.log('   目标护盾: %d → %d', result.target.shield + Math.min(result.final_damage, result.target.shield || 0), result.target.shield);
+            if (result.target) {
+              console.log('   目标血量: %d → %d', result.target.health + result.final_damage, result.target.health);
+              console.log('   目标护盾: %d → %d', result.target.shield + Math.min(result.final_damage, result.target.shield || 0), result.target.shield);
+            }
             console.log('   目标存活: %s', result.target_dead ? '❌ 死亡' : '✅ 存活');
           }
           // 被动技能触发
@@ -257,7 +259,7 @@ wss.on('connection', (ws) => {
           }
           if (result.yao_passive_triggered) {
             console.log('   🎯 被动技能: 瑶「山鬼白鹿」触发！为%s提供%d护盾', 
-              result.yao_passive_target.name, result.yao_shield_amount);
+              result.yao_passive_target ? result.yao_passive_target.name : '目标', result.yao_shield_amount);
           }
           console.log('═══════════════════════════════════════════════════════');
           
