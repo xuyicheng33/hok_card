@@ -213,6 +213,7 @@ wss.on('connection', (ws) => {
           }
           
           // 🎯 同步技能点（孙尚香被动可能修改了技能点）
+          const gameState = room.gameState;
           gameState.hostSkillPoints = gameState.blueSkillPoints;
           gameState.guestSkillPoints = gameState.redSkillPoints;
           
