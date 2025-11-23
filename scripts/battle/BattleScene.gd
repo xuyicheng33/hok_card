@@ -963,8 +963,7 @@ func create_default_online_cards():
 				extra_info += ", 闪避:%.0f%%" % (card.dodge_rate * 100)
 			if card.card_name == "大乔":
 				extra_info += ", 被动:%s" % ("已用" if card.daqiao_passive_used else "可用")
-			print("   创建蓝方卡牌: %s (ID: %s, HP:%d/%d, ATK:%d, ARM:%d%s)" % 
-				[card.card_name, card.card_id, card.health, card.max_health, card.attack, card.armor, extra_info])
+			print("   创建蓝方卡牌: %s (ID: %s, HP:%d/%d, ATK:%d, ARM:%d%s)" % [card.card_name, card.card_id, card.health, card.max_health, card.attack, card.armor, extra_info])
 		
 		# 创建红方卡牌
 		for card_data in red_cards_data:
@@ -1004,8 +1003,7 @@ func create_default_online_cards():
 				extra_info += ", 闪避:%.0f%%" % (card.dodge_rate * 100)
 			if card.card_name == "大乔":
 				extra_info += ", 被动:%s" % ("已用" if card.daqiao_passive_used else "可用")
-			print("   创建红方卡牌: %s (ID: %s, HP:%d/%d, ATK:%d, ARM:%d%s)" % 
-				[card.card_name, card.card_id, card.health, card.max_health, card.attack, card.armor, extra_info])
+			print("   创建红方卡牌: %s (ID: %s, HP:%d/%d, ATK:%d, ARM:%d%s)" % [card.card_name, card.card_id, card.health, card.max_health, card.attack, card.armor, extra_info])
 		
 		# 🌐 根据is_host决定哪方是"我方"
 		if NetworkManager.is_host:
