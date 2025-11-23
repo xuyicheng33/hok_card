@@ -32,7 +32,7 @@ class SkillCalculator {
       return { success: false, error: '施法者或目标未找到' };
     }
 
-    const healAmount = 130;
+    const healAmount = 200;
     const oldHealth = target.health;
     target.health = Math.min(target.max_health, target.health + healAmount);
     const actualHeal = target.health - oldHealth;
@@ -86,7 +86,7 @@ class SkillCalculator {
       return { success: false, error: '施法者未找到' };
     }
 
-    const critRateBuff = 0.40;
+    const critRateBuff = 0.30;
     const oldCritRate = caster.crit_rate;
     const oldCritDamage = caster.crit_damage;
 

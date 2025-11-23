@@ -782,46 +782,55 @@ func process_all_passive_skills(is_player_turn: bool):
 		if card and not card.is_dead() and card.has_passive_skill():
 			match card.card_name:
 				"朵莉亚":
-					# 朵莉亚的被动技能在任何回合都触发
+					# 朵莉亚的被动技能：为自己和血量最低的队友各恢复50点
 					var old_health = card.health
 					var old_shield = card.shield
-					card.trigger_duoliya_passive()
+					card.trigger_duoliya_passive()  # 为朵莉亚自己恢复50点
 					
-					# 计算溢出的护盾值
-					var healed_amount = 75  # 朵莉亚固定恢复75点生命值
-					var overflow_shield = 0
+					# 计算朵莉亚自己的治疗量和溢出护盾
+					var healed_amount = 50
+					var overflow_shield = card.shield - old_shield
 					
-					# 如果生命值已满，计算溢出的护盾
-					if old_health + healed_amount >= card.max_health:
-						overflow_shield = card.shield - old_shield
-						
-						# 发送更详细的被动技能触发信号
-						passive_skill_triggered.emit(card, "欢歌", "溢出%d点护盾" % overflow_shield, {
-							"heal_amount": healed_amount,
-							"overflow_shield": overflow_shield,
-							"old_health": old_health,
-							"new_health": card.health,
-							"old_shield": old_shield,
-							"new_shield": card.shield
-						})
-						
-						print("朵莉亚被动技能「欢歌」发动：生命值 %d->%d (已满)，溢出%d点转为护盾 %d->%d" % [
-							old_health, card.health, overflow_shield, old_shield, card.shield
+					# 为血量最低的队友（不包括自己）恢复50点
+					var lowest_hp_ally: Card = null
+					var lowest_hp = 999999
+					
+					for ally in cards_to_process:
+						if ally and not ally.is_dead() and ally != card:
+							if ally.health < lowest_hp:
+								lowest_hp = ally.health
+								lowest_hp_ally = ally
+					
+					var ally_heal_amount = 0
+					if lowest_hp_ally:
+						var ally_old_health = lowest_hp_ally.health
+						lowest_hp_ally.heal(50, false)  # 队友不溢出护盾
+						ally_heal_amount = lowest_hp_ally.health - ally_old_health
+						print("朵莉亚被动「欢歌」为队友%s恢复：%d->%d (+%d)" % [
+							lowest_hp_ally.card_name, ally_old_health, lowest_hp_ally.health, ally_heal_amount
 						])
-					else:
-						# 普恢复生命值情况
-						passive_skill_triggered.emit(card, "欢歌", "HP+75", {
-							"heal_amount": healed_amount,
-							"overflow_shield": 0,
-							"old_health": old_health,
-							"new_health": card.health,
-							"old_shield": old_shield,
-							"new_shield": card.shield
-						})
-						
-						print("朵莉亚被动技能「欢歌」发动：生命值 %d->%d, 护盾 %d->%d" % [
-							old_health, card.health, old_shield, card.shield
-						])
+					
+					# 发送被动技能触发信号
+					var effect_msg = "自己+%d" % (card.health - old_health)
+					if overflow_shield > 0:
+						effect_msg += ", 护盾+%d" % overflow_shield
+					if ally_heal_amount > 0:
+						effect_msg += ", %s+%d" % [lowest_hp_ally.card_name if lowest_hp_ally else "队友", ally_heal_amount]
+					
+					passive_skill_triggered.emit(card, "欢歌", effect_msg, {
+						"self_heal": card.health - old_health,
+						"overflow_shield": overflow_shield,
+						"ally_name": lowest_hp_ally.card_name if lowest_hp_ally else "",
+						"ally_heal": ally_heal_amount,
+						"old_health": old_health,
+						"new_health": card.health,
+						"old_shield": old_shield,
+						"new_shield": card.shield
+					})
+					
+					print("朵莉亚被动技能「欢歌」发动：生命值 %d->%d, 护盾 %d->%d" % [
+						old_health, card.health, old_shield, card.shield
+					])
 				"澜":
 					# 澜的"狩猎"被动：在攻击时触发，不在回合开始时处理
 					pass
@@ -1471,21 +1480,24 @@ func _apply_passive_skill_result(data: Dictionary):
 	# 根据被动技能类型构建消息
 	var message = ""
 	if passive_name == "欢歌":
-		var heal_amount = effect.get("heal_amount", 0)
+		var self_heal = effect.get("self_heal", 0)
 		var overflow_shield = effect.get("overflow_shield", 0)
-		print("🔍 欢歌被动数据: heal=%d, shield=%d" % [heal_amount, overflow_shield])
+		var ally_name = effect.get("ally_name", "")
+		var ally_heal = effect.get("ally_heal", 0)
+		print("🔍 欢歌被动数据: self_heal=%d, shield=%d, ally=%s, ally_heal=%d" % [self_heal, overflow_shield, ally_name, ally_heal])
 		
-		if heal_amount > 0 and overflow_shield > 0:
-			# 恢复生命 + 溢出护盾
-			message = "恢复%d生命值，溢出%d点转为护盾" % [heal_amount, overflow_shield]
-		elif heal_amount == 0 and overflow_shield > 0:
-			# 满血，全部转护盾
-			message = "生命值已满，获得%d点护盾" % overflow_shield
-		elif heal_amount > 0 and overflow_shield == 0:
-			# 只恢复生命
-			message = "恢复%d生命值" % heal_amount
+		# 构建消息
+		var msg_parts = []
+		if self_heal > 0:
+			msg_parts.append("自己+%d" % self_heal)
+		if overflow_shield > 0:
+			msg_parts.append("护盾+%d" % overflow_shield)
+		if ally_heal > 0 and ally_name != "":
+			msg_parts.append("%s+%d" % [ally_name, ally_heal])
+		
+		if msg_parts.size() > 0:
+			message = ", ".join(msg_parts)
 		else:
-			# 满血且无溢出（不应该发生）
 			message = "生命值已满"
 	else:
 		message = "生命+%d 护盾+%d" % [

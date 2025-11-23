@@ -388,7 +388,7 @@ func trigger_passive_turn_start() -> void:
 ## 朵莉亚的被动技能：欢歌
 func trigger_duoliya_passive() -> void:
 	print("%s 被动技能「%s」发动！" % [card_name, passive_skill_name])
-	heal(75, true)  # 只有朵莉亚的被动才能转化护盾
+	heal(50, true)  # 只有朵莉亚的被动才能转化护盾
 	print("%s 被动技能后状态 - 生命值: %d/%d, 护盾: %d" % [card_name, health, max_health, shield])
 
 ## 检查澜的被动技能条件（目标生命值小于等于50%）

@@ -591,16 +591,18 @@ wss.on('connection', (ws) => {
           
           activeCards.forEach(card => {
             if (card.health > 0) {  // 只处理存活的卡牌
-              // 朵莉亚的被动技能：欢歌
+              // 朵莉亚的被动技能：欢歌（自己+队友各50）
               if (card.card_name === '朵莉亚') {
-                const healAmount = 75;
+                const healAmount = 50;
+                
+                // 1. 为朵莉亚自己恢复50点
                 const oldHealth = card.health;
                 const oldShield = card.shield || 0;
                 
                 card.health = Math.min(card.max_health, card.health + healAmount);
                 const actualHeal = card.health - oldHealth;
                 
-                // 计算溢出护盾
+                // 计算溢出护盾（只给朵莉亚自己）
                 let overflowShield = 0;
                 if (oldHealth + healAmount > card.max_health) {
                   overflowShield = (oldHealth + healAmount) - card.max_health;
@@ -608,9 +610,29 @@ wss.on('connection', (ws) => {
                 }
                 
                 console.log(`⭐ [朵莉亚被动-欢歌] 回合开始恢复`);
-                console.log(`   生命: ${oldHealth} → ${card.health} (+${actualHeal})`);
+                console.log(`   朵莉亚自己: ${oldHealth} → ${card.health} (+${actualHeal})`);
                 if (overflowShield > 0) {
                   console.log(`   溢出护盾: +${overflowShield} (总护盾: ${card.shield})`);
+                }
+                
+                // 2. 为血量最低的队友（不包括自己）恢复50点
+                let lowestHpAlly = null;
+                let lowestHp = 999999;
+                
+                activeCards.forEach(ally => {
+                  if (ally.health > 0 && ally.id !== card.id && ally.health < lowestHp) {
+                    lowestHp = ally.health;
+                    lowestHpAlly = ally;
+                  }
+                });
+                
+                let allyHealAmount = 0;
+                if (lowestHpAlly) {
+                  const allyOldHealth = lowestHpAlly.health;
+                  lowestHpAlly.health = Math.min(lowestHpAlly.max_health, lowestHpAlly.health + healAmount);
+                  allyHealAmount = lowestHpAlly.health - allyOldHealth;
+                  
+                  console.log(`   队友${lowestHpAlly.card_name}: ${allyOldHealth} → ${lowestHpAlly.health} (+${allyHealAmount})`);
                 }
                 
                 passiveResults.push({
@@ -619,10 +641,14 @@ wss.on('connection', (ws) => {
                   card_name: card.card_name,
                   passive_name: '欢歌',
                   effect: {
-                    heal_amount: actualHeal,
+                    self_heal: actualHeal,
                     overflow_shield: overflowShield,
+                    ally_id: lowestHpAlly ? lowestHpAlly.id : null,
+                    ally_name: lowestHpAlly ? lowestHpAlly.card_name : null,
+                    ally_heal: allyHealAmount,
                     new_health: card.health,
-                    new_shield: card.shield
+                    new_shield: card.shield,
+                    ally_new_health: lowestHpAlly ? lowestHpAlly.health : null
                   }
                 });
               }

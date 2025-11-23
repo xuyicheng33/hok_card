@@ -74,9 +74,9 @@ class BattleEngine {
     // 🎯 公孙离被动：暴击后闪避增益
     if (isCritical && attacker.card_name === '公孙离') {
       if (!attacker.dodge_bonus) attacker.dodge_bonus = 0;
-      if (attacker.dodge_bonus < 0.20) {
+      if (attacker.dodge_bonus < 0.25) {
         attacker.dodge_bonus += 0.05;
-        attacker.dodge_rate = 0.30 + attacker.dodge_bonus;
+        attacker.dodge_rate = 0.25 + attacker.dodge_bonus;
         console.log(`   ⭐ ${attacker.card_name}攻击暴击：闪避率+5% (当前:${(attacker.dodge_rate*100).toFixed(1)}%)`);
       }
     }
