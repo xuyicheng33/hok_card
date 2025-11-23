@@ -927,45 +927,67 @@ func create_default_online_cards():
 		
 		# 创建蓝方卡牌
 		for card_data in blue_cards_data:
+			# 🎯 Card构造函数的第4个参数会同时设置health和max_health
+			# 游戏开始时所有卡牌都是满血，所以传max_health即可
 			var card = Card.new(
-				card_data.card_name,
+				card_data.get("card_name", "未知"),
 				"",  # description
-				card_data.attack,
-				card_data.max_health,
-				card_data.armor,
-				card_data.skill_name,
+				card_data.get("attack", 0),
+				card_data.get("max_health", 100),  # 第4参数：会同时设置health和max_health
+				card_data.get("armor", 0),
+				card_data.get("skill_name", ""),
 				"",  # skill_description
-				null  # skill_effect
+				null  # card_image
 			)
-			card.card_id = card_data.id
-			card.health = card_data.health
-			card.shield = card_data.shield
-			card.crit_rate = card_data.crit_rate
-			card.crit_damage = card_data.crit_damage
-			card.skill_cost = card_data.skill_cost
+			# 设置卡牌ID和其他属性
+			card.card_id = card_data.get("id", "unknown")
+			# 如果服务器发送的health与max_health不同（已受伤），则覆盖health
+			var server_health = card_data.get("health", card.max_health)
+			if server_health != card.max_health:
+				card.health = server_health
+				print("   ⚠️  %s 不是满血状态: %d/%d" % [card.card_name, server_health, card.max_health])
+			card.shield = card_data.get("shield", 0)
+			card.crit_rate = card_data.get("crit_rate", 0.0)
+			card.crit_damage = card_data.get("crit_damage", 1.3)
+			card.skill_cost = card_data.get("skill_cost", 2)
+			# 🌟 大乔被动标记初始化
+			if card.card_name == "大乔":
+				card.daqiao_passive_used = false
 			blue_cards.append(card)
-			print("   创建蓝方卡牌: %s (ID: %s)" % [card.card_name, card.card_id])
+			print("   创建蓝方卡牌: %s (ID: %s, HP:%d/%d, ATK:%d, ARM:%d)" % 
+				[card.card_name, card.card_id, card.health, card.max_health, card.attack, card.armor])
 		
 		# 创建红方卡牌
 		for card_data in red_cards_data:
+			# 🎯 Card构造函数的第4个参数会同时设置health和max_health
+			# 游戏开始时所有卡牌都是满血，所以传max_health即可
 			var card = Card.new(
-				card_data.card_name,
+				card_data.get("card_name", "未知"),
 				"",  # description
-				card_data.attack,
-				card_data.max_health,
-				card_data.armor,
-				card_data.skill_name,
+				card_data.get("attack", 0),
+				card_data.get("max_health", 100),  # 第4参数：会同时设置health和max_health
+				card_data.get("armor", 0),
+				card_data.get("skill_name", ""),
 				"",  # skill_description
-				null  # skill_effect
+				null  # card_image
 			)
-			card.card_id = card_data.id
-			card.health = card_data.health
-			card.shield = card_data.shield
-			card.crit_rate = card_data.crit_rate
-			card.crit_damage = card_data.crit_damage
-			card.skill_cost = card_data.skill_cost
+			# 设置卡牌ID和其他属性
+			card.card_id = card_data.get("id", "unknown")
+			# 如果服务器发送的health与max_health不同（已受伤），则覆盖health
+			var server_health = card_data.get("health", card.max_health)
+			if server_health != card.max_health:
+				card.health = server_health
+				print("   ⚠️  %s 不是满血状态: %d/%d" % [card.card_name, server_health, card.max_health])
+			card.shield = card_data.get("shield", 0)
+			card.crit_rate = card_data.get("crit_rate", 0.0)
+			card.crit_damage = card_data.get("crit_damage", 1.3)
+			card.skill_cost = card_data.get("skill_cost", 2)
+			# 🌟 大乔被动标记初始化
+			if card.card_name == "大乔":
+				card.daqiao_passive_used = false
 			red_cards.append(card)
-			print("   创建红方卡牌: %s (ID: %s)" % [card.card_name, card.card_id])
+			print("   创建红方卡牌: %s (ID: %s, HP:%d/%d, ATK:%d, ARM:%d)" % 
+				[card.card_name, card.card_id, card.health, card.max_health, card.attack, card.armor])
 		
 		# 🌐 根据is_host决定哪方是"我方"
 		if NetworkManager.is_host:
