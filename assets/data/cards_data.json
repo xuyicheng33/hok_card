@@ -70,7 +70,7 @@
 	  "skill_cost": 2,
 	  "skill_ends_turn": true,
 	  "passive_skill_name": "千金重弩",
-	  "passive_skill_effect": "每次普通攻击命中敌人时，有50%的概率获得1点技能点。",
+	  "passive_skill_effect": "每次普通攻击命中敌人时，有70%的概率获得1点技能点。",
 	  "image_path": "res://assets/images/cards/sunshangxiang.png",
 	  "card_type": "marksman",
 	  "rarity": "epic"

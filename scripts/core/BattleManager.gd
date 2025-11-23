@@ -461,10 +461,10 @@ func _execute_attack_internal(attacker: Card, target: Card, attacker_is_player: 
 		# 通知BattleScene销毁实体
 		_notify_battle_scene_entity_destroyed(target)
 	
-	# 孙尚香被动技能：千金重弩（每次普通攻击命中敌人时有50%概率获得1点技能点）
+	# 孙尚香被动技能：千金重弩（每次普通攻击命中敌人时有70%概率获得1点技能点）
 	if attacker.card_name == "孙尚香" and not is_dodged and final_damage > 0:
-		# 攻击命中且造成伤害，50%概率触发被动技能
-		if randf() < 0.5:  # 50%概率
+		# 攻击命中且造成伤害，70%概率触发被动技能
+		if randf() < 0.7:  # 70%概率
 			var skill_points_gained = 1
 			if attacker_is_player:
 				player_skill_points = min(max_skill_points, player_skill_points + skill_points_gained)

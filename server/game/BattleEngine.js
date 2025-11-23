@@ -108,13 +108,13 @@ class BattleEngine {
       console.log(`   ☠️  ${target.card_name} 被击败!`);
     }
     
-    // 🎯 孙尚香被动技能：千金重弩（攻击命中时50%概率获得1技能点）
+    // 🎯 孙尚香被动技能：千金重弩（攻击命中时70%概率获得1技能点）
     let skillPointGained = false;
     let skillPointChange = null;
     
     if (attacker.card_name === '孙尚香' && !isDodged && actualDamage > 0) {
       const triggerChance = Math.random();
-      if (triggerChance < 0.5) {
+      if (triggerChance < 0.7) {
         // 判断攻击者所属阵营
         const isAttackerBlue = this.state.blueCards.some(c => c.id === attackerId);
         const currentSkillPoints = isAttackerBlue ? this.state.blueSkillPoints : this.state.redSkillPoints;
