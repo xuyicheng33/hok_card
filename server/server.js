@@ -75,7 +75,11 @@ function initGameState(roomId) {
     guestSkillPoints: 4,  // 客户端技能点
     // 🎯 为BattleEngine添加蓝/红方技能点映射
     blueSkillPoints: 4,  // 蓝方技能点（房主）
-    redSkillPoints: 4    // 红方技能点（客户端）
+    redSkillPoints: 4,    // 红方技能点（客户端）
+    // 🎯 行动点系统（新增）
+    blueActionsUsed: 0,   // 蓝方已使用行动次数
+    redActionsUsed: 0,    // 红方已使用行动次数
+    actionsPerTurn: 3     // 每回合行动次数上限
   };
   
   // 创建战斗引擎

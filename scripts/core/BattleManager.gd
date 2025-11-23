@@ -40,6 +40,11 @@ var player_skill_points: int = 4  # 玩家技能点
 var enemy_skill_points: int = 4   # 敌人技能点
 var max_skill_points: int = 6     # 技能点上限
 
+# 🎯 行动点系统（新增）
+var actions_per_turn: int = 3     # 每回合行动次数
+var player_actions_used: int = 0  # 玩家已使用行动次数
+var enemy_actions_used: int = 0   # 敌人已使用行动次数
+
 # 战斗结果
 var battle_result: Dictionary = {}
 
@@ -58,6 +63,7 @@ signal turn_changed(is_player_turn: bool)
 signal state_changed(new_state)
 signal card_died(card: Card, is_player: bool)
 signal skill_points_changed(player_points: int, enemy_points: int)
+signal actions_changed(player_actions: int, enemy_actions: int)  # 🎯 行动点变化信号
 signal passive_skill_triggered(card: Card, skill_name: String, effect: String, details: Dictionary)
 signal skill_executed(skill_data: Dictionary)  # 🌐 在线模式技能执行信号
 
@@ -110,6 +116,10 @@ func reset_battle():
 	# 重置技能点
 	player_skill_points = 4
 	enemy_skill_points = 4
+	
+	# 🎯 重置行动点
+	player_actions_used = 0
+	enemy_actions_used = 0
 
 ## 开始战斗
 func start_battle(player_deck: Array, enemy_deck: Array) -> bool:
@@ -659,6 +669,9 @@ func start_new_turn(is_player_turn: bool):
 			skill_points_changed.emit(player_skill_points, enemy_skill_points)
 	elif current_turn <= 2:
 		print("第%d回合不增加技能点" % current_turn)
+	
+	# 🎯 重置行动点
+	reset_actions(is_player_turn)
 	
 	# 发送回合变化信号
 	turn_changed.emit(is_player_turn)
@@ -1502,6 +1515,62 @@ func _update_all_entities_display():
 		if card:
 			_update_battle_entity_display(card)
 	
-	for card in enemy_cards:
-		if card:
-			_update_battle_entity_display(card)
+	for enemy in enemy_cards:
+		if enemy:
+			_update_battle_entity_display(enemy)
+
+# ================================
+# 🎯 行动点系统函数
+# ================================
+
+## 使用1次行动
+func use_action(is_player: bool) -> bool:
+	if is_player:
+		player_actions_used += 1
+		print("🎯 玩家使用行动：%d/%d" % [player_actions_used, actions_per_turn])
+	else:
+		enemy_actions_used += 1
+		print("🎯 敌人使用行动：%d/%d" % [enemy_actions_used, actions_per_turn])
+	
+	# 发送行动点变化信号
+	actions_changed.emit(player_actions_used, enemy_actions_used)
+	
+	# 检查是否达到行动上限
+	var actions_used = player_actions_used if is_player else enemy_actions_used
+	if actions_used >= actions_per_turn:
+		print("🎯 行动次数已用尽！")
+		return true  # 返回true表示应该结束回合
+	
+	return false
+
+## 检查是否还能行动
+func can_act(is_player: bool) -> bool:
+	var actions_used = player_actions_used if is_player else enemy_actions_used
+	return actions_used < actions_per_turn
+
+## 获取剩余行动次数
+func get_remaining_actions(is_player: bool) -> int:
+	var actions_used = player_actions_used if is_player else enemy_actions_used
+	return actions_per_turn - actions_used
+
+## 重置行动点（在回合开始时调用）
+func reset_actions(is_player: bool):
+	if is_player:
+		player_actions_used = 0
+		print("🎯 重置玩家行动点：0/%d" % actions_per_turn)
+	else:
+		enemy_actions_used = 0
+		print("🎯 重置敌人行动点：0/%d" % actions_per_turn)
+	
+	# 发送行动点变化信号
+	actions_changed.emit(player_actions_used, enemy_actions_used)
+
+## 获取当前行动点信息（用于UI显示）
+func get_action_info() -> Dictionary:
+	return {
+		"player_used": player_actions_used,
+		"enemy_used": enemy_actions_used,
+		"max_actions": actions_per_turn,
+		"player_remaining": get_remaining_actions(true),
+		"enemy_remaining": get_remaining_actions(false)
+	}

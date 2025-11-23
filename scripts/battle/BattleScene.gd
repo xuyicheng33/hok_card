@@ -31,6 +31,10 @@ var message_area  # 消息区域
 var player_skill_points_label: Label
 var enemy_skill_points_label: Label
 
+# 🎯 行动点显示组件（新增）
+var player_actions_label: Label
+var enemy_actions_label: Label
+
 # 战斗状态
 var player_entities: Array = []
 var enemy_entities: Array = []
@@ -258,6 +262,10 @@ func get_node_references():
 	# 连接技能点变化信号
 	if BattleManager and not BattleManager.skill_points_changed.is_connected(_on_skill_points_changed):
 		BattleManager.skill_points_changed.connect(_on_skill_points_changed)
+	
+	# 🎯 连接行动点变化信号
+	if BattleManager and not BattleManager.actions_changed.is_connected(_on_actions_changed):
+		BattleManager.actions_changed.connect(_on_actions_changed)
 	
 	# 连接被动技能触发信号
 	if BattleManager and not BattleManager.passive_skill_triggered.is_connected(_on_passive_skill_triggered):
@@ -499,6 +507,23 @@ func create_battle_area_content():
 	player_skill_points_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	player_skill_points_label.add_theme_color_override("font_color", Color(0.4, 0.8, 1.0))  # 蓝色
 	skill_points_container.add_child(player_skill_points_label)
+	
+	# 🎯 行动点显示（新增）
+	player_actions_label = Label.new()
+	player_actions_label.text = "我方行动: 0/3"
+	player_actions_label.add_theme_font_override("font", chinese_font)
+	player_actions_label.add_theme_font_size_override("font_size", 16)
+	player_actions_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	player_actions_label.add_theme_color_override("font_color", Color(0.6, 1.0, 0.6))  # 绿色
+	skill_points_container.add_child(player_actions_label)
+	
+	enemy_actions_label = Label.new()
+	enemy_actions_label.text = "敌方行动: 0/3"
+	enemy_actions_label.add_theme_font_override("font", chinese_font)
+	enemy_actions_label.add_theme_font_size_override("font_size", 16)
+	enemy_actions_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	enemy_actions_label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.4))  # 橙色
+	skill_points_container.add_child(enemy_actions_label)
 	
 	# 战斗状态显示
 	battle_status_label = Label.new()
@@ -1367,8 +1392,10 @@ func execute_attack(attacker, target):
 	if BattleManager.is_online_mode:
 		print("🌐 在线模式：攻击意图已发送，等待服务器结果...")
 		# 服务器结果会通过 _handle_opponent_attack 处理
-		# 自动结束回合
-		call_deferred("end_turn")
+		# 🎯 使用行动点
+		var should_end = BattleManager.use_action(attacker_is_player)
+		if should_end:
+			call_deferred("end_turn")
 		return
 	
 	# 单机模式：处理本地攻击结果
@@ -1424,8 +1451,10 @@ func execute_attack(attacker, target):
 		if result.target_dead:
 			target.take_damage(0)  # 触发死亡动画
 	
-	# 自动结束回合
-	call_deferred("end_turn")
+	# 🎯 使用行动点，检查是否应该结束回合
+	var should_end = BattleManager.use_action(attacker_is_player)
+	if should_end:
+		call_deferred("end_turn")
 
 ## 获取取消技能按钮
 func get_cancel_skill_button():
@@ -2241,9 +2270,16 @@ func execute_skill(caster, target = null):
 		
 		print("技能执行完成: %s" % result)
 		
-		# 检查技能是否需要结束回合
-		if card.skill_ends_turn:
-			print("%s 的技能 %s 结束回合" % [card.card_name, skill_name])
+		# 🎯 使用行动点
+		var is_player = caster.is_player()
+		var should_end = BattleManager.use_action(is_player)
+		
+		# 检查技能是否需要结束回合，或者行动点用尽
+		if card.skill_ends_turn or should_end:
+			if card.skill_ends_turn:
+				print("%s 的技能 %s 标记为结束回合" % [card.card_name, skill_name])
+			if should_end:
+				print("🎯 行动次数用尽，结束回合")
 			# 延迟结束回合，确保所有动画和效果都完成
 			call_deferred("end_turn")
 	else:
@@ -2297,6 +2333,17 @@ func _on_skill_points_changed(player_points: int, enemy_points: int):
 	
 	# 更新技能按钮状态
 	update_skill_button_state()
+
+## 🎯 行动点变化处理（新增）
+func _on_actions_changed(player_actions: int, enemy_actions: int):
+	print("🎯 行动点更新: 玩家: %d/3, 敌人: %d/3" % [player_actions, enemy_actions])
+	
+	# 更新行动点显示
+	if player_actions_label and is_instance_valid(player_actions_label):
+		player_actions_label.text = "我方行动: %d/3" % player_actions
+	
+	if enemy_actions_label and is_instance_valid(enemy_actions_label):
+		enemy_actions_label.text = "敌方行动: %d/3" % enemy_actions
 
 ## 更新技能按钮状态
 func update_skill_button_state():
