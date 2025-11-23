@@ -510,7 +510,7 @@ func create_battle_area_content():
 	
 	# 🎯 行动点显示（新增）
 	player_actions_label = Label.new()
-	player_actions_label.text = "我方行动: 0/3"
+	player_actions_label.text = "行动剩余: 3/3"  # 初始剩余3次
 	player_actions_label.add_theme_font_override("font", chinese_font)
 	player_actions_label.add_theme_font_size_override("font_size", 16)
 	player_actions_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -518,7 +518,7 @@ func create_battle_area_content():
 	skill_points_container.add_child(player_actions_label)
 	
 	enemy_actions_label = Label.new()
-	enemy_actions_label.text = "敌方行动: 0/3"
+	enemy_actions_label.text = "敌方剩余: 3/3"  # 初始剩余3次
 	enemy_actions_label.add_theme_font_override("font", chinese_font)
 	enemy_actions_label.add_theme_font_size_override("font_size", 16)
 	enemy_actions_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
