@@ -379,13 +379,16 @@ wss.on('connection', (ws) => {
               const isPlayerHost = (playerId === room.host);
               sendToClient(playerId, {
                 type: 'turn_changed',
+                turn: room.gameState.currentTurn,  // 🔧 添加回合信息
+                current_player: room.gameState.currentPlayer,
                 is_skill_points_only: true,  // 标记为仅技能点更新
                 host_skill_points: room.gameState.hostSkillPoints,
                 guest_skill_points: room.gameState.guestSkillPoints,
                 // 保持行动点不变
                 blue_actions_used: room.gameState.blueActionsUsed,
                 red_actions_used: room.gameState.redActionsUsed,
-                actions_per_turn: room.gameState.actionsPerTurn
+                actions_per_turn: room.gameState.actionsPerTurn,
+                passive_results: []  // 空数组，避免客户端报错
               });
             });
           }
