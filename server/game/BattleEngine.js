@@ -108,6 +108,63 @@ class BattleEngine {
       console.log(`   ☠️  ${target.card_name} 被击败!`);
     }
     
+    // 🌟 大乔被动技能：宿命之海（受到致命伤害时触发）
+    let daqiaoPassiveTriggered = false;
+    let daqiaoPassiveData = null;
+    
+    if (target.card_name === '大乔' && target.health <= 0 && !target.daqiao_passive_used) {
+      // 标记被动已使用
+      target.daqiao_passive_used = true;
+      
+      // 生命值设置为1点
+      target.health = 1;
+      
+      // 判断大乔所属阵营
+      const isDaqiaoBlue = this.state.blueCards.some(c => c.id === targetId);
+      const currentSkillPoints = isDaqiaoBlue ? this.state.blueSkillPoints : this.state.redSkillPoints;
+      const maxSkillPoints = 6;
+      const skillPointsToGain = 3;
+      
+      // 计算实际获得的技能点和溢出
+      const totalAfterGain = currentSkillPoints + skillPointsToGain;
+      const newSkillPoints = Math.min(maxSkillPoints, totalAfterGain);
+      const actualGainedPoints = newSkillPoints - currentSkillPoints;
+      const overflowPoints = Math.max(0, totalAfterGain - maxSkillPoints);
+      
+      // 更新技能点
+      if (isDaqiaoBlue) {
+        this.state.blueSkillPoints = newSkillPoints;
+      } else {
+        this.state.redSkillPoints = newSkillPoints;
+      }
+      
+      // 计算溢出转换的护盾
+      const shieldFromOverflow = overflowPoints * 150;
+      if (shieldFromOverflow > 0) {
+        target.shield = (target.shield || 0) + shieldFromOverflow;
+      }
+      
+      daqiaoPassiveTriggered = true;
+      daqiaoPassiveData = {
+        team: isDaqiaoBlue ? 'blue' : 'red',
+        old_health: 0,
+        new_health: 1,
+        old_skill_points: currentSkillPoints,
+        new_skill_points: newSkillPoints,
+        skill_points_gained: skillPointsToGain,
+        actual_gained_points: actualGainedPoints,
+        overflow_points: overflowPoints,
+        shield_amount: shieldFromOverflow,
+        new_shield: target.shield || 0
+      };
+      
+      console.log(`   ⭐ 大乔被动「宿命之海」触发！生命值→1`);
+      console.log(`   💫 技能点: ${currentSkillPoints} + ${skillPointsToGain} → ${newSkillPoints} (实际+${actualGainedPoints})`);
+      if (overflowPoints > 0) {
+        console.log(`   🛡️ 溢出${overflowPoints}点技能点 → ${shieldFromOverflow}护盾 (总护盾:${target.shield})`);
+      }
+    }
+    
     // 🎯 孙尚香被动技能：千金重弩（攻击命中时70%概率获得1技能点）
     let skillPointGained = false;
     let skillPointChange = null;
@@ -189,6 +246,9 @@ class BattleEngine {
       target_health: target.health,
       target_shield: target.shield || 0,  // 🛡️ 同步护盾值
       target_dead: target.health <= 0,
+      // 🌟 大乔被动技能：宿命之海
+      daqiao_passive_triggered: daqiaoPassiveTriggered,
+      daqiao_passive_data: daqiaoPassiveData,
       // 🎯 孙尚香被动技能点获取
       passive_skill_triggered: skillPointGained,
       skill_point_change: skillPointChange,

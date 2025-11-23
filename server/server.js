@@ -53,6 +53,7 @@ function initGameState(roomId) {
   const sunshangxiangData = cardDB.getCard('sunshangxiang_004');
   const gongsunliData = cardDB.getCard('gongsunli_003');
   const duoliyaData = cardDB.getCard('duoliya_001');
+  // const daqiaoData = cardDB.getCard('daqiao_006');  // 🌟 大乔测试
   
   // 蓝方：澜 + 孙尚香
   const blueCards = [
@@ -64,6 +65,7 @@ function initGameState(roomId) {
   const redCards = [
     { id: 'gongsunli_003_red_0', ...gongsunliData, health: gongsunliData.max_health, shield: 0 },
     { id: 'duoliya_001_red_1', ...duoliyaData, health: duoliyaData.max_health, shield: 0 }
+    // { id: 'daqiao_006_red_1', ...daqiaoData, health: daqiaoData.max_health, shield: 0, daqiao_passive_used: false }  // 🌟 大乔测试：替换朵莉亚
   ];
   
   room.gameState = {
@@ -296,6 +298,33 @@ wss.on('connection', (ws) => {
               actions_per_turn: room.gameState.actionsPerTurn
             });
           });
+          
+          // 🌟 如果大乔被动触发，需要广播技能点更新
+          if (result.daqiao_passive_triggered && result.daqiao_passive_data) {
+            const daqiaoData = result.daqiao_passive_data;
+            console.log('🌟 [大乔被动] 广播技能点更新: %s方 %d→%d (溢出%d点→%d护盾)',
+              daqiaoData.team, daqiaoData.old_skill_points, daqiaoData.new_skill_points,
+              daqiaoData.overflow_points, daqiaoData.shield_amount);
+            
+            // 同步技能点到 host/guest
+            room.gameState.hostSkillPoints = room.gameState.blueSkillPoints;
+            room.gameState.guestSkillPoints = room.gameState.redSkillPoints;
+            
+            // 广播技能点更新
+            room.players.forEach(playerId => {
+              const isPlayerHost = (playerId === room.host);
+              sendToClient(playerId, {
+                type: 'turn_changed',
+                is_skill_points_only: true,  // 标记为仅技能点更新
+                host_skill_points: room.gameState.hostSkillPoints,
+                guest_skill_points: room.gameState.guestSkillPoints,
+                // 保持行动点不变
+                blue_actions_used: room.gameState.blueActionsUsed,
+                red_actions_used: room.gameState.redActionsUsed,
+                actions_per_turn: room.gameState.actionsPerTurn
+              });
+            });
+          }
         } else if (data.action === 'skill') {
           // 🎯 技能计算（服务器权威）
           const skillData = data.data;

@@ -1209,6 +1209,53 @@ func _handle_opponent_attack(data: Dictionary):
 					}
 				)
 	
+	# 🌟 大乔被动技能：宿命之海（受到致命伤害时触发）
+	if data.get("daqiao_passive_triggered", false) and data.has("daqiao_passive_data"):
+		var daqiao_data = data.daqiao_passive_data
+		
+		print("🌟 大乔被动「宿命之海」触发！")
+		print("   生命值: 0 → 1")
+		print("   技能点: %d → %d (实际+%d)" % [
+			daqiao_data.old_skill_points,
+			daqiao_data.new_skill_points,
+			daqiao_data.actual_gained_points
+		])
+		if daqiao_data.overflow_points > 0:
+			print("   溢出: %d点技能点 → %d护盾" % [
+				daqiao_data.overflow_points,
+				daqiao_data.shield_amount
+			])
+		
+		# 更新大乔的生命值和护盾
+		target.health = daqiao_data.new_health  # 应该是1
+		target.shield = daqiao_data.new_shield
+		target.daqiao_passive_used = true  # 标记被动已使用
+		
+		# 更新UI
+		if entity_card_map.has(target):
+			var target_entity = entity_card_map[target]
+			if target_entity and is_instance_valid(target_entity):
+				target_entity.update_display()
+		
+		# 技能点已经由 _on_server_turn_changed 处理，这里只发送被动技能触发信号
+		var effect_msg = "生命值恢复至1点，获得%d点技能点" % daqiao_data.actual_gained_points
+		if daqiao_data.overflow_points > 0:
+			effect_msg += "，溢出%d点转换为%d点护盾" % [
+				daqiao_data.overflow_points,
+				daqiao_data.shield_amount
+			]
+		
+		passive_skill_triggered.emit(target, "宿命之海", effect_msg, daqiao_data)
+		
+		# 记录到消息系统
+		if message_system:
+			message_system.add_passive_skill(
+				target.card_name,
+				"宿命之海",
+				effect_msg,
+				daqiao_data
+			)
+	
 	# 📝 记录到消息系统（如果存在）
 	if message_system:
 		if is_dodged:
