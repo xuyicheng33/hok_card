@@ -256,8 +256,22 @@ wss.on('connection', (ws) => {
             console.log('   目标存活: %s', result.target_dead ? '❌ 死亡' : '✅ 存活');
           }
           // 被动技能触发
+          if (result.daqiao_passive_triggered) {
+            console.log('   🌟 被动技能: 大乔「宿命之海」触发！生命值→1，技能点+3');
+            if (result.daqiao_passive_data) {
+              console.log('      技能点: %d → %d (实际+%d)', 
+                result.daqiao_passive_data.old_skill_points,
+                result.daqiao_passive_data.new_skill_points,
+                result.daqiao_passive_data.actual_gained_points);
+              if (result.daqiao_passive_data.overflow_points > 0) {
+                console.log('      溢出: %d点技能点 → %d护盾', 
+                  result.daqiao_passive_data.overflow_points,
+                  result.daqiao_passive_data.shield_amount);
+              }
+            }
+          }
           if (result.lan_passive_triggered) {
-            console.log('   🎯 被动技能: 澜「狩猎」触发！增伤+30%%');
+            console.log('   🎯 被动技能: 澜「狩猎」触发！增伤+50%%');
           }
           if (result.sunshangxiang_passive_triggered) {
             console.log('   🎯 被动技能: 孙尚香「千金重弩」触发！获得1技能点');
