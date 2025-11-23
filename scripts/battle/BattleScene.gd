@@ -2275,8 +2275,7 @@ func execute_skill(caster, target = null):
 		
 		print("技能执行完成: %s" % result)
 		
-		# 🎯 使用行动点
-		var is_player = caster.is_player()
+		# 🎯 使用行动点（重用前面定义的is_player变量）
 		var should_end = BattleManager.use_action(is_player)
 		
 		# 检查技能是否需要结束回合，或者行动点用尽
