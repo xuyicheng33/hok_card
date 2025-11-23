@@ -2454,6 +2454,10 @@ func update_initial_skill_points():
 	if BattleManager:
 		var skill_info = BattleManager.get_skill_points_info()
 		_on_skill_points_changed(skill_info.player_points, skill_info.enemy_points)
+		
+		# 🎯 同时初始化行动点显示
+		var action_info = BattleManager.get_action_info()
+		_on_actions_changed(action_info.player_used, action_info.enemy_used)
 
 ## 更新特定卡牌实体的显示
 func update_card_entity_display(card: Card):

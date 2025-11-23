@@ -120,6 +120,9 @@ func reset_battle():
 	# 🎯 重置行动点
 	player_actions_used = 0
 	enemy_actions_used = 0
+	
+	# 🎯 发送初始化信号（让UI显示初始值）
+	actions_changed.emit(player_actions_used, enemy_actions_used)
 
 ## 开始战斗
 func start_battle(player_deck: Array, enemy_deck: Array) -> bool:
