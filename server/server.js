@@ -347,7 +347,7 @@ wss.on('connection', (ws) => {
                 // 📊 详细技能日志
                 console.log('═══════════════════════════════════════════════════════');
                 console.log('✨ [技能详情]');
-                console.log('   施法者: %s', caster.card_name);
+                console.log('   施法者: %s', caster ? caster.card_name : skillData.caster_id);
                 console.log('   技能名: %s', skillData.skill_name);
                 console.log('   消耗:   %d点', skillCost);
                 console.log('   效果类型: %s', result.effect_type);
