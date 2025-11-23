@@ -950,12 +950,21 @@ func create_default_online_cards():
 			card.crit_rate = card_data.get("crit_rate", 0.0)
 			card.crit_damage = card_data.get("crit_damage", 1.3)
 			card.skill_cost = card_data.get("skill_cost", 2)
-			# 🌟 大乔被动标记初始化
+			# � 特殊属性（公孙离、大乔等）
+			card.dodge_rate = card_data.get("dodge_rate", 0.0)
+			if card.card_name == "公孙离":
+				card.gongsunli_dodge_bonus = card_data.get("dodge_bonus", 0.0)
+			# � 大乔被动标记
 			if card.card_name == "大乔":
-				card.daqiao_passive_used = false
+				card.daqiao_passive_used = card_data.get("daqiao_passive_used", false)
 			blue_cards.append(card)
-			print("   创建蓝方卡牌: %s (ID: %s, HP:%d/%d, ATK:%d, ARM:%d)" % 
-				[card.card_name, card.card_id, card.health, card.max_health, card.attack, card.armor])
+			var extra_info = ""
+			if card.dodge_rate > 0:
+				extra_info += ", 闪避:%.0f%%" % (card.dodge_rate * 100)
+			if card.card_name == "大乔":
+				extra_info += ", 被动:%s" % ("已用" if card.daqiao_passive_used else "可用")
+			print("   创建蓝方卡牌: %s (ID: %s, HP:%d/%d, ATK:%d, ARM:%d%s)" % 
+				[card.card_name, card.card_id, card.health, card.max_health, card.attack, card.armor, extra_info])
 		
 		# 创建红方卡牌
 		for card_data in red_cards_data:
@@ -982,12 +991,21 @@ func create_default_online_cards():
 			card.crit_rate = card_data.get("crit_rate", 0.0)
 			card.crit_damage = card_data.get("crit_damage", 1.3)
 			card.skill_cost = card_data.get("skill_cost", 2)
-			# 🌟 大乔被动标记初始化
+			# � 特殊属性（公孙离、大乔等）
+			card.dodge_rate = card_data.get("dodge_rate", 0.0)
+			if card.card_name == "公孙离":
+				card.gongsunli_dodge_bonus = card_data.get("dodge_bonus", 0.0)
+			# �� 大乔被动标记
 			if card.card_name == "大乔":
-				card.daqiao_passive_used = false
+				card.daqiao_passive_used = card_data.get("daqiao_passive_used", false)
 			red_cards.append(card)
-			print("   创建红方卡牌: %s (ID: %s, HP:%d/%d, ATK:%d, ARM:%d)" % 
-				[card.card_name, card.card_id, card.health, card.max_health, card.attack, card.armor])
+			var extra_info = ""
+			if card.dodge_rate > 0:
+				extra_info += ", 闪避:%.0f%%" % (card.dodge_rate * 100)
+			if card.card_name == "大乔":
+				extra_info += ", 被动:%s" % ("已用" if card.daqiao_passive_used else "可用")
+			print("   创建红方卡牌: %s (ID: %s, HP:%d/%d, ATK:%d, ARM:%d%s)" % 
+				[card.card_name, card.card_id, card.health, card.max_health, card.attack, card.armor, extra_info])
 		
 		# 🌐 根据is_host决定哪方是"我方"
 		if NetworkManager.is_host:

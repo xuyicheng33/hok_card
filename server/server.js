@@ -157,7 +157,7 @@ wss.on('connection', (ws) => {
               // 🎮 初始化游戏状态
               initGameState(data.room_id);
               
-              // 🎯 准备发送给客户端的卡牌数据（简化版，只包含必要信息）
+              // 🎯 准备发送给客户端的卡牌数据（包含所有必要信息）
               const blueCardsData = room.gameState.blueCards.map(card => ({
                 id: card.id,
                 card_name: card.card_name,
@@ -169,7 +169,12 @@ wss.on('connection', (ws) => {
                 crit_rate: card.crit_rate || 0,
                 crit_damage: card.crit_damage || 1.3,
                 skill_name: card.skill_name,
-                skill_cost: card.skill_cost
+                skill_cost: card.skill_cost,
+                // 🎯 特殊属性（公孙离、大乔等）
+                dodge_rate: card.dodge_rate || 0,
+                dodge_bonus: card.dodge_bonus || 0,
+                daqiao_passive_used: card.daqiao_passive_used || false,
+                skill_ends_turn: card.skill_ends_turn || false
               }));
               
               const redCardsData = room.gameState.redCards.map(card => ({
@@ -183,7 +188,12 @@ wss.on('connection', (ws) => {
                 crit_rate: card.crit_rate || 0,
                 crit_damage: card.crit_damage || 1.3,
                 skill_name: card.skill_name,
-                skill_cost: card.skill_cost
+                skill_cost: card.skill_cost,
+                // 🎯 特殊属性（公孙离、大乔等）
+                dodge_rate: card.dodge_rate || 0,
+                dodge_bonus: card.dodge_bonus || 0,
+                daqiao_passive_used: card.daqiao_passive_used || false,
+                skill_ends_turn: card.skill_ends_turn || false
               }));
               
               broadcastToRoom(data.room_id, { 
