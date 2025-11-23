@@ -377,10 +377,13 @@ wss.on('connection', (ws) => {
             // 广播技能点更新
             room.players.forEach(playerId => {
               const isPlayerHost = (playerId === room.host);
+              const isMyTurn = (room.gameState.currentPlayer === 'host' && isPlayerHost) || 
+                               (room.gameState.currentPlayer === 'guest' && !isPlayerHost);
               sendToClient(playerId, {
                 type: 'turn_changed',
                 turn: room.gameState.currentTurn,  // 🔧 添加回合信息
                 current_player: room.gameState.currentPlayer,
+                is_my_turn: isMyTurn,  // 🔧 添加is_my_turn字段
                 is_skill_points_only: true,  // 标记为仅技能点更新
                 host_skill_points: room.gameState.hostSkillPoints,
                 guest_skill_points: room.gameState.guestSkillPoints,
