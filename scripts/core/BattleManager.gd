@@ -951,12 +951,23 @@ func _on_opponent_action_received(action_data: Dictionary):
 		var blue_actions = action_data.get("blue_actions_used", 0)
 		var red_actions = action_data.get("red_actions_used", 0)
 		
+		# ⚠️ 重要：只同步对方的行动点，不覆盖自己的
+		# 因为自己的行动点在发送操作时已经use_action了
+		# 如果覆盖可能导致快速连续操作时状态错误
 		if NetworkManager.is_host:
-			player_actions_used = blue_actions
+			# 房主：只同步红方（对方）的行动点
 			enemy_actions_used = red_actions
+			# 蓝方（自己）的行动点保持客户端计数，除非差异太大才同步
+			if abs(player_actions_used - blue_actions) > 1:
+				print("⚠️ 行动点差异过大，强制同步: 本地%d vs 服务器%d" % [player_actions_used, blue_actions])
+				player_actions_used = blue_actions
 		else:
-			player_actions_used = red_actions
+			# 客户端：只同步蓝方（对方）的行动点
 			enemy_actions_used = blue_actions
+			# 红方（自己）的行动点保持客户端计数，除非差异太大才同步
+			if abs(player_actions_used - red_actions) > 1:
+				print("⚠️ 行动点差异过大，强制同步: 本地%d vs 服务器%d" % [player_actions_used, red_actions])
+				player_actions_used = red_actions
 		
 		print("🎯 行动点同步: 我方%d/3, 敌方%d/3" % [player_actions_used, enemy_actions_used])
 		actions_changed.emit(player_actions_used, enemy_actions_used)
