@@ -493,6 +493,10 @@ wss.on('connection', (ws) => {
           // 💰 击杀奖励广播（长期方案 - 使用 GoldManager）
           if (result.kill_reward && result.kill_reward > 0 && result.killer_team) {
             const goldMgr = room.goldManager;
+            if (!goldMgr) {
+              console.error('⚠️ [错误] GoldManager 不存在，无法发放击杀奖励');
+              return;
+            }
             goldMgr.grantKillReward(result.killer_team, result.kill_reward);
             
             // 广播金币变化
@@ -524,6 +528,10 @@ wss.on('connection', (ws) => {
             // 蓝方阵亡补偿（长期方案 - 使用 GoldManager）
             if (blueDeaths >= 2 && !room.gameState.blueCompensationGiven) {
               const goldMgr = room.goldManager;
+              if (!goldMgr) {
+                console.error('⚠️ [错误] GoldManager 不存在，无法发放蓝方补偿');
+                return;
+              }
               const compensation = 30;
               
               console.log('💰 [阵亡补偿] 蓝方/房主阵亡%d张，获得%d金币补偿！', blueDeaths, compensation);
@@ -551,6 +559,10 @@ wss.on('connection', (ws) => {
             // 红方阵亡补偿（长期方案 - 使用 GoldManager）
             if (redDeaths >= 2 && !room.gameState.redCompensationGiven) {
               const goldMgr = room.goldManager;
+              if (!goldMgr) {
+                console.error('⚠️ [错误] GoldManager 不存在，无法发放红方补偿');
+                return;
+              }
               const compensation = 30;
               
               console.log('💰 [阵亡补偿] 红方/客户端阵亡%d张，获得%d金币补偿！', redDeaths, compensation);
@@ -779,6 +791,14 @@ wss.on('connection', (ws) => {
           // 💰 购买装备（长期方案 - 使用 GoldManager）
           const gameState = room.gameState;
           const goldMgr = room.goldManager;
+          if (!goldMgr) {
+            console.error('⚠️ [错误] GoldManager 不存在，无法购买装备');
+            sendToClient(clientId, {
+              type: 'buy_equipment_failed',
+              error: '服务器错误，请重试'
+            });
+            return;
+          }
           const isHost = (clientId === room.host);
           const playerTeam = isHost ? 'blue' : 'red';
           const equipmentCost = 15; // 固定15金币
@@ -988,6 +1008,11 @@ wss.on('connection', (ws) => {
           // 💰 金币结算（长期方案 - 使用 GoldManager）
           const goldMgr = room.goldManager;
           let goldIncome = null;
+          const passiveResults = []; // 移到 goldMgr 检查之外
+          
+          if (!goldMgr) {
+            console.error('⚠️ [错误] GoldManager 不存在，跳过金币结算');
+          } else {
           const currentTeam = isHostTurn ? 'blue' : 'red';
           
           // 计算金币收入
@@ -1001,9 +1026,9 @@ wss.on('connection', (ws) => {
           
           // 🔍 校验金币一致性
           GoldValidator.validate(gameState, '回合结算后');
+          }
           
           // 🎯 触发回合开始被动技能
-          const passiveResults = [];
           const activeCards = isHostTurn ? gameState.blueCards : gameState.redCards;
           
           activeCards.forEach(card => {
@@ -1110,7 +1135,7 @@ wss.on('connection', (ws) => {
           console.log('   技能点: 房主 %d/6 | 客户端 %d/6', 
             gameState.hostSkillPoints, gameState.guestSkillPoints);
           console.log('   金币: 房主 💰%d | 客户端 💰%d',
-            goldMgr.hostGold, goldMgr.guestGold);
+            goldMgr ? goldMgr.hostGold : 0, goldMgr ? goldMgr.guestGold : 0);
           const blueRemaining = gameState.actionsPerTurn - gameState.blueActionsUsed;
           const redRemaining = gameState.actionsPerTurn - gameState.redActionsUsed;
           console.log('   行动点: 蓝方已用%d剩余%d | 红方已用%d剩余%d',
@@ -1156,8 +1181,8 @@ wss.on('connection', (ws) => {
               actions_per_turn: gameState.actionsPerTurn,
               passive_results: passiveResults,  // 包含被动技能结果
               // 💰 金币信息（长期方案 - 通过 GoldManager）
-              host_gold: goldMgr.hostGold,
-              guest_gold: goldMgr.guestGold,
+              host_gold: goldMgr ? goldMgr.hostGold : 0,
+              guest_gold: goldMgr ? goldMgr.guestGold : 0,
               gold_income: goldIncome  // 本次收入详情（base, interest, total, newGold）
             });
           });

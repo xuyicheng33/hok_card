@@ -40,6 +40,10 @@ class GoldManager {
    * @returns {Number}
    */
   getGold(team) {
+    if (team !== 'blue' && team !== 'red') {
+      console.error('❌ [参数错误] 无效的队伍:', team);
+      return 0;
+    }
     return team === 'blue' ? this.state.blueGold : this.state.redGold;
   }
   
