@@ -92,6 +92,9 @@ func _connect_network_signals():
 		NetworkManager.opponent_action_received.connect(_on_opponent_action_received)
 		NetworkManager.turn_changed.connect(_on_server_turn_changed)
 		NetworkManager.game_over.connect(_on_server_game_over)
+		NetworkManager.equipment_crafted.connect(_on_equipment_crafted)
+		NetworkManager.craft_failed.connect(_on_craft_failed)
+		NetworkManager.opponent_crafted.connect(_on_opponent_crafted)
 		print("已连接网络管理器信号")
 
 ## 初始化所有状态
@@ -1834,3 +1837,89 @@ func _on_server_game_over(game_result: Dictionary):
 	battle_ended.emit(battle_result)
 	
 	print("✅ 战斗结束处理完成，已发送 battle_ended 信号")
+
+## 🔨 处理装备合成成功
+func _on_equipment_crafted(craft_data: Dictionary):
+	if not is_online_mode:
+		return
+	
+	var hero_id = craft_data.get("hero_id", "")
+	var crafted_equip = craft_data.get("crafted_equipment", {})
+	var removed_materials = craft_data.get("removed_materials", [])
+	var remaining_gold = craft_data.get("remaining_gold", 0)
+	var hero_stats = craft_data.get("hero_stats", {})
+	
+	print("\n🔨═══════════════════════════════════════════════════════")
+	print("   装备合成成功！")
+	print("   英雄ID: %s" % hero_id)
+	print("   合成装备: %s" % crafted_equip.get("name", "未知"))
+	print("   移除材料: %s" % removed_materials)
+	print("   剩余金币: 💰%d" % remaining_gold)
+	print("   新属性: 生命%d/%d 攻击%d 护甲%d" % [
+		hero_stats.get("health", 0),
+		hero_stats.get("max_health", 0),
+		hero_stats.get("attack", 0),
+		hero_stats.get("armor", 0)
+	])
+	print("═══════════════════════════════════════════════════════\n")
+	
+	# 更新金币
+	if NetworkManager.is_host:
+		player_gold = remaining_gold
+	else:
+		player_gold = remaining_gold
+	
+	# 更新英雄卡牌属性
+	var card_to_update = null
+	for card in player_cards:
+		if card.id == hero_id:
+			card_to_update = card
+			break
+	
+	if card_to_update:
+		# 更新卡牌属性
+		card_to_update.health = hero_stats.get("health", card_to_update.health)
+		card_to_update.max_health = hero_stats.get("max_health", card_to_update.max_health)
+		card_to_update.attack = hero_stats.get("attack", card_to_update.attack)
+		card_to_update.armor = hero_stats.get("armor", card_to_update.armor)
+		card_to_update.crit_rate = hero_stats.get("crit_rate", card_to_update.crit_rate)
+		card_to_update.crit_damage = hero_stats.get("crit_damage", card_to_update.crit_damage)
+		card_to_update.dodge_rate = hero_stats.get("dodge_rate", card_to_update.dodge_rate)
+		card_to_update.shield = hero_stats.get("shield", 0)
+		
+		# 更新装备列表（移除材料，添加新装备）
+		if not card_to_update.equipment:
+			card_to_update.equipment = []
+		
+		# 移除材料装备
+		var new_equipment_list = []
+		for equip in card_to_update.equipment:
+			if not removed_materials.has(equip.get("id", "")):
+				new_equipment_list.append(equip)
+		
+		# 添加新装备
+		new_equipment_list.append(crafted_equip)
+		card_to_update.equipment = new_equipment_list
+		
+		print("✅ 已更新英雄 %s 的属性和装备" % card_to_update.card_name)
+	else:
+		print("⚠️ 未找到ID为 %s 的英雄卡牌" % hero_id)
+	
+	# 通知UI更新（可以通过信号）
+	# TODO: 添加装备合成成功的UI反馈
+
+## 🔨 处理装备合成失败
+func _on_craft_failed(error_message: String):
+	if not is_online_mode:
+		return
+	
+	print("❌ 装备合成失败: %s" % error_message)
+	# TODO: 显示错误提示给玩家
+
+## 🔨 处理对手合成装备通知
+func _on_opponent_crafted(team: String):
+	if not is_online_mode:
+		return
+	
+	print("🔨 对手合成了装备 (队伍: %s)" % team)
+	# TODO: 可以显示一个简单的通知，不透露具体内容

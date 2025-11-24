@@ -40,6 +40,9 @@ signal opponent_disconnected()
 signal turn_changed(turn_data: Dictionary)  # 🎯 服务器权威回合变化
 signal equipment_drawn(equipment_options: Array)  # 💰 装备抽取结果
 signal item_equipped(equip_data: Dictionary)  # 🎒 装备成功
+signal equipment_crafted(craft_data: Dictionary)  # 🔨 装备合成成功
+signal craft_failed(error_message: String)  # 🔨 装备合成失败
+signal opponent_crafted(team: String)  # 🔨 对手合成装备通知
 signal game_over(game_result: Dictionary)  # 🏆 游戏结束（服务器权威）
 
 func _ready():
@@ -220,6 +223,27 @@ func handle_server_message(message: Dictionary):
 			}
 			turn_changed.emit(gold_update)
 		
+		"equipment_crafted":
+			var hero_id = message.get("hero_id", "")
+			var crafted_equip = message.get("crafted_equipment", {})
+			var removed_materials = message.get("removed_materials", [])
+			var remaining_gold = message.get("remaining_gold", 0)
+			var hero_stats = message.get("hero_stats", {})
+			print("🔨 装备合成成功: 英雄%s 获得%s" % [hero_id, crafted_equip.get("name", "")])
+			print("   移除材料: %s" % removed_materials)
+			print("   剩余金币: %d" % remaining_gold)
+			equipment_crafted.emit(message)
+		
+		"craft_failed":
+			var error_msg = message.get("error", "合成失败")
+			print("❌ 装备合成失败: %s" % error_msg)
+			craft_failed.emit(error_msg)
+		
+		"opponent_crafted":
+			var team = message.get("team", "")
+			print("🔨 对手合成了装备 (队伍: %s)" % team)
+			opponent_crafted.emit(team)
+		
 		"game_over":
 			var winner = message.get("winner", "")
 			var winner_name = message.get("winner_name", "")
@@ -317,6 +341,14 @@ func send_skill(caster_card_id: String, skill_name: String, target_card_id: Stri
 ## 发送游戏操作 - 结束回合
 func send_end_turn() -> bool:
 	return send_game_action("end_turn", {})
+
+## 发送游戏操作 - 装备合成（阶段1：定向合成）
+func send_craft_equipment(hero_id: String, material_ids: Array) -> bool:
+	print("🔨 发送装备合成请求: 英雄%s, 材料%s" % [hero_id, material_ids])
+	return send_game_action("craft_equipment", {
+		"hero_id": hero_id,
+		"material_ids": material_ids
+	})
 
 ## 发送游戏操作的通用方法
 func send_game_action(action_type: String, data: Dictionary) -> bool:
