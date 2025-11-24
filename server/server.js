@@ -66,6 +66,7 @@ function calculateGoldIncome(currentGold) {
 // 🏆 检查游戏是否结束（服务器权威）
 function checkGameOver(roomId, room) {
   const gameState = room.gameState;
+  const goldMgr = room.goldManager;  // 获取金币管理器
   
   // 统计存活卡牌
   const blueAlive = gameState.blueCards.filter(c => c.health > 0).length;
@@ -91,8 +92,8 @@ function checkGameOver(roomId, room) {
       final_state: {
         blue_alive: blueAlive,
         red_alive: redAlive,
-        host_gold: gameState.hostGold,
-        guest_gold: gameState.guestGold
+        host_gold: goldMgr.hostGold,  // 通过 GoldManager 访问
+        guest_gold: goldMgr.guestGold  // 通过 GoldManager 访问
       }
     });
     
@@ -128,8 +129,8 @@ function checkGameOver(roomId, room) {
       final_state: {
         blue_alive: blueAlive,
         red_alive: redAlive,
-        host_gold: gameState.hostGold,
-        guest_gold: gameState.guestGold
+        host_gold: goldMgr.hostGold,  // 通过 GoldManager 访问
+        guest_gold: goldMgr.guestGold  // 通过 GoldManager 访问
       }
     });
     
@@ -334,9 +335,9 @@ wss.on('connection', (ws) => {
                 // 🎯 初始技能点和行动点
                 initial_skill_points: 4,
                 actions_per_turn: 3,
-                // 💰 初始金币（新增）
-                host_gold: room.gameState.hostGold,
-                guest_gold: room.gameState.guestGold
+                // 💰 初始金币（通过 GoldManager 访问）
+                host_gold: room.goldManager.hostGold,
+                guest_gold: room.goldManager.guestGold
               });
               console.log('[游戏开始]', data.room_id);
             }, 500);
@@ -1109,7 +1110,7 @@ wss.on('connection', (ws) => {
           console.log('   技能点: 房主 %d/6 | 客户端 %d/6', 
             gameState.hostSkillPoints, gameState.guestSkillPoints);
           console.log('   金币: 房主 💰%d | 客户端 💰%d',
-            gameState.hostGold, gameState.guestGold);
+            goldMgr.hostGold, goldMgr.guestGold);
           const blueRemaining = gameState.actionsPerTurn - gameState.blueActionsUsed;
           const redRemaining = gameState.actionsPerTurn - gameState.redActionsUsed;
           console.log('   行动点: 蓝方已用%d剩余%d | 红方已用%d剩余%d',

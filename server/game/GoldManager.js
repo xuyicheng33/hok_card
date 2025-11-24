@@ -51,10 +51,10 @@ class GoldManager {
   setGold(team, amount) {
     if (team === 'blue') {
       this.state.blueGold = amount;
-      this.state.hostGold = amount;  // 自动同步
+      // 注：不需要手动同步 hostGold，因为虚拟属性 getter 会自动返回 blueGold
     } else {
       this.state.redGold = amount;
-      this.state.guestGold = amount;  // 自动同步
+      // 注：不需要手动同步 guestGold，因为虚拟属性 getter 会自动返回 redGold
     }
     console.log('💰 [金币设置] %s方: %d', team === 'blue' ? '蓝' : '红', amount);
   }
