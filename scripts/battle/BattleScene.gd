@@ -22,6 +22,7 @@ var end_turn_button: Button
 var use_skill_button: Button
 var cancel_skill_button: Button  # 取消技能按钮引用
 var buy_equipment_button: Button  # 购买装备按钮
+var craft_equipment_button: Button  # 🔨 合成装备按钮
 var back_to_menu_button: Button
 var detail_button: Button  # 新增详情按钮引用
 var message_system  # 消息系统
@@ -49,6 +50,10 @@ var is_using_skill: bool = false
 # 🎒 装备选择模式
 var is_selecting_equipment_target: bool = false  # 是否在选择装备目标
 var pending_equipment: Dictionary = {}  # 待装备的装备数据
+
+# 🔨 装备合成弹窗
+var craft_popup: PopupPanel = null
+const CRAFT_POPUP_SCENE = preload("res://scenes/ui/EquipmentCraftPopup.tscn")
 
 # 战斗模式支持
 var battle_mode: String = "2v2"  # 默认2v2模式
@@ -282,6 +287,9 @@ func get_node_references():
 	# 连接被动技能触发信号
 	if BattleManager and not BattleManager.passive_skill_triggered.is_connected(_on_passive_skill_triggered):
 		BattleManager.passive_skill_triggered.connect(_on_passive_skill_triggered)
+	
+	# 🔨 初始化装备合成弹窗
+	call_deferred("initialize_craft_popup")
 	
 	# 初始化技能点显示
 	call_deferred("update_initial_skill_points")
@@ -602,6 +610,13 @@ func create_battle_area_content():
 	buy_equipment_button.add_theme_color_override("font_color", Color(1.0, 0.84, 0.0))  # 金色
 	left_buttons.add_child(buy_equipment_button)
 	
+	# 🔨 合成装备按钮
+	craft_equipment_button = Button.new()
+	craft_equipment_button.text = "🔨合成装备(10)"
+	craft_equipment_button.custom_minimum_size = Vector2(140, 48)
+	craft_equipment_button.add_theme_color_override("font_color", Color(1.0, 0.65, 0.0))  # 橙色
+	left_buttons.add_child(craft_equipment_button)
+	
 	# 右侧按钮组
 	var right_buttons = HBoxContainer.new()
 	right_buttons.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -632,6 +647,10 @@ func create_battle_area_content():
 	# 连接购买装备按钮信号
 	if buy_equipment_button:
 		buy_equipment_button.pressed.connect(_on_buy_equipment_pressed)
+	
+	# 连接合成装备按钮信号
+	if craft_equipment_button:
+		craft_equipment_button.pressed.connect(_on_craft_equipment_pressed)
 
 func create_message_area_content():
 	# 消息区域标题
@@ -2826,6 +2845,61 @@ func _on_buy_equipment_pressed():
 		print("⚠️ 装备系统仅支持在线模式")
 		if message_system:
 			message_system.add_message("装备系统仅支持在线模式", "system")
+
+## 🔨 初始化装备合成弹窗
+func initialize_craft_popup():
+	if not CRAFT_POPUP_SCENE:
+		print("❌ 无法加载装备合成弹窗场景")
+		return
+	
+	craft_popup = CRAFT_POPUP_SCENE.instantiate()
+	if craft_popup:
+		add_child(craft_popup)
+		craft_popup.craft_confirmed.connect(_on_craft_confirmed)
+		print("✅ 装备合成弹窗已初始化")
+	else:
+		print("❌ 无法实例化装备合成弹窗")
+
+## 🔨 合成装备按钮点击
+func _on_craft_equipment_pressed():
+	print("🔨 [UI] 合成装备按钮被点击")
+	
+	# 🌐 在线模式检查
+	if not BattleManager.is_online_mode:
+		print("⚠️ 装备合成系统仅支持在线模式")
+		if message_system:
+			message_system.add_message("装备合成系统仅支持在线模式", "system")
+		return
+	
+	# 检查是否是我的回合
+	var current_turn_num = BattleManager.current_turn
+	var is_host_turn = (current_turn_num % 2 == 1)
+	var is_my_turn = (NetworkManager.is_host == is_host_turn)
+	
+	if not is_my_turn:
+		print("⚠️ 不是你的回合，无法合成装备")
+		if message_system:
+			message_system.add_message("不是你的回合", "system")
+		return
+	
+	# 显示合成弹窗
+	if craft_popup:
+		var current_gold = BattleManager.player_gold
+		craft_popup.show_popup(BattleManager.player_cards, current_gold)
+	else:
+		print("❌ 合成弹窗未初始化")
+
+## 🔨 合成确认事件处理
+func _on_craft_confirmed(hero_id: String, material_ids: Array):
+	print("🔨 [UI] 确认合成: 英雄%s, 材料%s" % [hero_id, material_ids])
+	
+	# 发送合成请求到服务器
+	if NetworkManager:
+		NetworkManager.send_craft_equipment(hero_id, material_ids)
+		if message_system:
+			message_system.add_message("发送合成请求...", "system")
+	else:
+		print("❌ NetworkManager 不存在")
 
 ## 📦 显示装备选择面板（3选1）
 func _show_equipment_selection_panel(equipment_options: Array):
