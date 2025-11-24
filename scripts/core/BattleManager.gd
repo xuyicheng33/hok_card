@@ -1483,6 +1483,13 @@ func _apply_passive_skill_result(data: Dictionary):
 	var passive_name = data.get("passive_name", "")
 	var effect = data.get("effect", {})
 	
+	# 🎒 检查是否是装备被动效果
+	var result_type = data.get("type", "")
+	if result_type == "equipment_heal":
+		# 装备被动：提神水晶等
+		_apply_equipment_passive(data)
+		return
+	
 	print("⭐ [被动技能] %s 触发 %s" % [card_name, passive_name])
 	print("   📦 服务器数据: %s" % JSON.stringify(effect))
 	
@@ -1551,6 +1558,43 @@ func _apply_passive_skill_result(data: Dictionary):
 	
 	# 🎯 发射信号，传递完整的details数据
 	passive_skill_triggered.emit(card, passive_name, message, details)
+
+## 🎒 应用装备被动效果
+func _apply_equipment_passive(data: Dictionary):
+	var card_id = data.get("card_id", "")
+	var card_name = data.get("card_name", "")
+	var equipment_name = data.get("equipment_name", "")
+	var heal_amount = data.get("heal_amount", 0)
+	var new_health = data.get("new_health", 0)
+	
+	print("⭐ [被动技能] %s 触发 %s" % [card_name, equipment_name])
+	print("   📦 服务器数据: %s" % JSON.stringify(data))
+	
+	# 查找卡牌
+	var card = _find_card_by_id(card_id)
+	if not card:
+		print("❌ 找不到卡牌: %s" % card_id)
+		return
+	
+	# 应用治疗效果
+	if heal_amount > 0:
+		var old_health = card.health
+		card.health = new_health
+		print("   💚 生命恢复: %d → %d (+%d)" % [old_health, card.health, heal_amount])
+	else:
+		print("   💚 无恢复（已满血）")
+	
+	# 更新UI
+	_update_battle_entity_display(card)
+	
+	# 🎯 发射被动技能信号（便于消息系统显示）
+	var details = {
+		"equipment_name": equipment_name,
+		"heal_amount": heal_amount,
+		"new_health": new_health
+	}
+	var message = "生命+%d" % heal_amount if heal_amount > 0 else "无效果"
+	passive_skill_triggered.emit(card, equipment_name, message, details)
 
 ## 应用孙尚香技能结果（减护甲+真实伤害）
 func _apply_sunshangxiang_skill_result(data: Dictionary):
