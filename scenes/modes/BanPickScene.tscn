@@ -1,7 +1,6 @@
-[gd_scene load_steps=4 format=3 uid="uid://banpickscene"]
+[gd_scene load_steps=3 format=3 uid="uid://banpickscene"]
 
 [ext_resource type="Script" path="res://scripts/ui/BanPickScene.gd" id="1"]
-[ext_resource type="Theme" path="res://default_theme.tres" id="2"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_Header"]
 bg_color = Color(0.1, 0.1, 0.2, 0.9)
