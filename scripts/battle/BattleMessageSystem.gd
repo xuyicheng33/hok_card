@@ -41,7 +41,8 @@ var message_colors = {
 	"dodge": Color(0.3, 1.0, 0.8),      # 闪避(蓝绿色)
 	"turn": Color(0.7, 0.9, 1.0),       # 回合信息(淡蓝色)
 	"death": Color(0.8, 0.4, 0.4),      # 死亡(深红色)
-	"system": Color(1.0, 1.0, 1.0)      # 系统消息(纯白色，更醒目)
+	"system": Color(1.0, 1.0, 1.0),     # 系统消息(纯白色，更醒目)
+	"equipment": Color(1.0, 0.84, 0.0)  # 装备(金色，醒目)
 }
 
 func _ready():
@@ -280,6 +281,8 @@ func _get_message_icon(type: String) -> String:
 			return "[死亡]"
 		"system":
 			return "[系统]"
+		"equipment":
+			return "🎒[装备]"
 		_:
 			return "•"
 

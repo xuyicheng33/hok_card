@@ -3099,11 +3099,39 @@ func _on_item_equipped(equip_data: Dictionary):
 		
 		print("✅ 卡牌%s装备已更新，当前装备数:%d" % [card.card_name, card.equipment.size()])
 		
-		# 更新UI显示
-		call_deferred("update_cards_display")
+		# 🎯 找到对应的BattleEntity并更新显示
+		var entity = _find_entity_by_card_id(card_id)
+		if entity and is_instance_valid(entity):
+			# 更新装备图标显示
+			entity.update_equipment_display()
+			# 更新卡牌属性显示（生命值、攻击等）
+			entity.update_display()
+			print("✅ 实体显示已更新: %s" % card.card_name)
+		else:
+			print("⚠️ 未找到对应实体: %s" % card_id)
 		
 		# 显示消息
 		if message_system:
-			message_system.add_message("system", "%s装备了%s" % [card.card_name, equipment.get("name", "")])
+			var equipment_name = equipment.get("name", "装备")
+			message_system.add_message("equipment", "%s装备了%s" % [card.card_name, equipment_name])
+			print("📢 装备消息: %s装备了%s" % [card.card_name, equipment_name])
 	else:
 		print("⚠️ 未找到卡牌:", card_id)
+
+## 🔍 根据card_id查找对应的BattleEntity
+func _find_entity_by_card_id(card_id: String):
+	# 在玩家方实体中查找
+	for entity in player_cards:
+		if entity and is_instance_valid(entity):
+			var card = entity.get_card()
+			if card and (card.id == card_id or card.card_id == card_id):
+				return entity
+	
+	# 在敌方实体中查找
+	for entity in enemy_cards:
+		if entity and is_instance_valid(entity):
+			var card = entity.get_card()
+			if card and (card.id == card_id or card.card_id == card_id):
+				return entity
+	
+	return null
