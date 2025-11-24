@@ -704,6 +704,11 @@ func connect_battle_manager_signals():
 			NetworkManager.item_equipped.connect(_on_item_equipped)
 		print("装备系统信号连接完成")
 	
+	# 🔨 连接装备合成失败信号
+	if BattleManager and not BattleManager.craft_failed_event.is_connected(_on_craft_failed):
+		BattleManager.craft_failed_event.connect(_on_craft_failed)
+		print("装备合成失败信号连接完成")
+	
 	print("战斗管理器信号连接完成")
 
 ## 初始化UI
@@ -2959,6 +2964,19 @@ func _clear_all_highlights():
 	for entity in enemy_entities:
 		if entity:
 			entity.set_highlight(false)
+
+## 🔨 处理装备合成失败
+func _on_craft_failed(error_message: String):
+	print("❌ [UI] 装备合成失败: %s" % error_message)
+	
+	# 退出合成选择模式
+	if is_selecting_craft_target:
+		is_selecting_craft_target = false
+		_clear_all_highlights()
+	
+	# 显示错误消息
+	if message_system:
+		message_system.add_message("合成失败: %s" % error_message, "system")
 
 ## 📦 显示装备选择面板（3选1）
 func _show_equipment_selection_panel(equipment_options: Array):

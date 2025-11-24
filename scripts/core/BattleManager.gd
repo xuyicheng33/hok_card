@@ -1925,12 +1925,15 @@ func _on_equipment_crafted(craft_data: Dictionary):
 		print("⚠️ 未找到ID为 %s 的英雄卡牌" % hero_id)
 
 ## 🔨 处理装备合成失败
+signal craft_failed_event(error_message: String)  # 发射给UI的信号
+
 func _on_craft_failed(error_message: String):
 	if not is_online_mode:
 		return
 	
 	print("❌ 装备合成失败: %s" % error_message)
-	# TODO: 显示错误提示给玩家
+	# 发射信号给UI层
+	craft_failed_event.emit(error_message)
 
 ## 🔨 处理对手合成装备通知
 func _on_opponent_crafted(team: String):
