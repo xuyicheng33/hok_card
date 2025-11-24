@@ -1397,14 +1397,14 @@ func _handle_opponent_skill(data: Dictionary):
 
 ## 根据卡牌ID查找卡牌
 func _find_card_by_id(card_id: String) -> Card:
-	# 在玩家卡牌中查找
+	# 在玩家卡牌中查找（同时匹配card_id和id）
 	for card in player_cards:
-		if card and card.card_id == card_id:
+		if card and (card.card_id == card_id or card.id == card_id):
 			return card
 	
-	# 在敌人卡牌中查找
+	# 在敌人卡牌中查找（同时匹配card_id和id）
 	for card in enemy_cards:
-		if card and card.card_id == card_id:
+		if card and (card.card_id == card_id or card.id == card_id):
 			return card
 	
 	return null

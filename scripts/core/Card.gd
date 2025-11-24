@@ -6,6 +6,9 @@ extends Resource
 
 @export var card_id: String = ""  ## 卡牌ID，用于唯一标识卡牌
 @export var card_name: String = ""  ## 卡牌名称
+
+# 🌐 在线模式：服务器端卡牌实例ID（如'lan_002_red_0'）
+var id: String = ""  ## 服务器端唯一ID，用于装备等操作
 @export var description: String = ""  ## 卡牌描述
 @export var attack: int = 0  ## 攻击力
 @export var health: int = 0  ## 生命值

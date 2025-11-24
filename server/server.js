@@ -630,37 +630,31 @@ wss.on('connection', (ws) => {
           
         } else if (data.action === 'equip_item') {
           // 🎒 装备物品到英雄
-          const { equipment_id, card_id } = data.data;
+          const { equipment_id, card_name } = data.data;
           const isHost = (clientId === room.host);
           
           console.log('\n═══════════════════════════════════════════════════════');
           console.log('🎒 [装备物品请求]');
           console.log('   玩家:', isHost ? '房主/蓝方' : '客户端/红方');
           console.log('   装备ID:', equipment_id);
-          console.log('   英雄ID:', card_id);
+          console.log('   英雄名字:', card_name);
           console.log('───────────────────────────────────────────────────────');
           
-          // 查找英雄卡牌
-          const card = engine.findCard(card_id);
+          // 根据玩家身份确定队伍
+          const myTeam = isHost ? room.gameState.blueTeam : room.gameState.redTeam;
+          
+          // 在我方队伍中按名字查找英雄
+          const card = myTeam.find(c => c.card_name === card_name);
           if (!card) {
-            console.error('[装备失败] 英雄未找到:', card_id);
+            console.error('[装备失败] 英雄未找到:', card_name);
             sendToClient(clientId, {
               type: 'equip_failed',
-              error: '英雄未找到'
+              error: '英雄未找到: ' + card_name
             });
             return;
           }
           
-          // 检查英雄所属
-          const cardIsHost = room.gameState.blueTeam.some(c => c.id === card_id);
-          if (cardIsHost !== isHost) {
-            console.error('[装备失败] 不能给对方英雄装备');
-            sendToClient(clientId, {
-              type: 'equip_failed',
-              error: '不能给对方英雄装备'
-            });
-            return;
-          }
+          console.log('✅ 找到英雄: %s (ID: %s)', card.card_name, card.id);
           
           // 初始化装备数组
           if (!card.equipment) {

@@ -1492,7 +1492,7 @@ func _on_card_clicked(entity):
 			print("🎒 [UI] 选择英雄: %s 装备: %s" % [card.card_name, equipment_name])
 			NetworkManager.send_game_action("equip_item", {
 				"equipment_id": pending_equipment.get("id"),
-				"card_id": card.id
+				"card_name": card.card_name  # 🎒 传英雄名字而非ID
 			})
 			
 			if message_system:
