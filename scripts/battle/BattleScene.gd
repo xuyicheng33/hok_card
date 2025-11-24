@@ -704,10 +704,13 @@ func connect_battle_manager_signals():
 			NetworkManager.item_equipped.connect(_on_item_equipped)
 		print("装备系统信号连接完成")
 	
-	# 🔨 连接装备合成失败信号
-	if BattleManager and not BattleManager.craft_failed_event.is_connected(_on_craft_failed):
-		BattleManager.craft_failed_event.connect(_on_craft_failed)
-		print("装备合成失败信号连接完成")
+	# 🔨 连接装备合成信号
+	if BattleManager:
+		if not BattleManager.craft_success_event.is_connected(_on_craft_success):
+			BattleManager.craft_success_event.connect(_on_craft_success)
+		if not BattleManager.craft_failed_event.is_connected(_on_craft_failed):
+			BattleManager.craft_failed_event.connect(_on_craft_failed)
+		print("装备合成信号连接完成")
 	
 	print("战斗管理器信号连接完成")
 
@@ -2964,6 +2967,19 @@ func _clear_all_highlights():
 	for entity in enemy_entities:
 		if entity:
 			entity.set_highlight(false)
+
+## 🔨 处理装备合成成功
+func _on_craft_success(equipment_name: String):
+	print("🎉 [UI] 装备合成成功: %s" % equipment_name)
+	
+	# 退出合成选择模式
+	if is_selecting_craft_target:
+		is_selecting_craft_target = false
+		_clear_all_highlights()
+	
+	# 显示成功消息
+	if message_system:
+		message_system.add_message("成功合成: %s" % equipment_name, "success")
 
 ## 🔨 处理装备合成失败
 func _on_craft_failed(error_message: String):

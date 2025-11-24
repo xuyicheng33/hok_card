@@ -71,6 +71,8 @@ signal actions_changed(player_actions: int, enemy_actions: int)  # 🎯 行动�
 signal gold_changed(player_gold: int, enemy_gold: int, income_data: Dictionary)  # 💰 金币变化信号
 signal passive_skill_triggered(card: Card, skill_name: String, effect: String, details: Dictionary)
 signal skill_executed(skill_data: Dictionary)  # 🌐 在线模式技能执行信号
+signal craft_success_event(equipment_name: String)  # 🔨 装备合成成功信号
+signal craft_failed_event(error_message: String)  # 🔨 装备合成失败信号
 
 # 设置自定义队伍
 func set_custom_teams(blue: Array, red: Array):
@@ -1921,12 +1923,14 @@ func _on_equipment_crafted(craft_data: Dictionary):
 			if card_entity and is_instance_valid(card_entity):
 				card_entity.update_display()
 				print("🎨 已更新 %s 的UI显示（装备图标已刷新）" % card_to_update.card_name)
+		
+		# 🎉 发射合成成功信号给UI
+		var equipment_name = crafted_equip.get("name", "未知装备")
+		craft_success_event.emit(equipment_name)
 	else:
 		print("⚠️ 未找到ID为 %s 的英雄卡牌" % hero_id)
 
 ## 🔨 处理装备合成失败
-signal craft_failed_event(error_message: String)  # 发射给UI的信号
-
 func _on_craft_failed(error_message: String):
 	if not is_online_mode:
 		return
