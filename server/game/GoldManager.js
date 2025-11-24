@@ -160,6 +160,36 @@ class GoldManager {
       guestGold: this.state.redGold
     };
   }
+  
+  /**
+   * 🔨 装备合成消耗金币（阶段1：定向合成）
+   * @param {String} team - 队伍 ('blue' 或 'red')
+   * @param {Number} cost - 合成价格
+   * @param {String} tier - 目标等级（用于日志）
+   * @returns {Object} - { success, oldGold, newGold, amount }
+   */
+  craftEquipment(team, cost = 10, tier = 'advanced') {
+    const result = this.deductGold(team, cost, `装备合成(${tier})`);
+    
+    if (result.success) {
+      console.log('🔨 [装备合成] %s方成功合成%s装备，花费%d金币', 
+        team === 'blue' ? '蓝' : '红', tier, cost);
+    }
+    
+    return result;
+  }
+  
+  /**
+   * 🔑 阶段2预留：批量合成
+   * @param {String} team - 队伍
+   * @param {Number} count - 合成次数
+   * @param {Number} costPerCraft - 单次合成费用
+   * @returns {Object}
+   */
+  batchCraft(team, count, costPerCraft) {
+    const totalCost = count * costPerCraft;
+    return this.deductGold(team, totalCost, `批量合成(${count}次)`);
+  }
 }
 
 module.exports = GoldManager;

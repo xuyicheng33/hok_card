@@ -223,6 +223,62 @@ class EquipmentDatabase {
       }
     }
   }
+  
+  /**
+   * 🔨 移除装备效果（用于合成）
+   * @param {Object} card - 卡牌对象
+   * @param {Object} equipment - 装备对象
+   */
+  removeEquipmentEffects(card, equipment) {
+    if (!equipment || !equipment.effects) return;
+
+    console.log(`   🗑️  移除装备「${equipment.name}」从 ${card.card_name}`);
+    
+    for (const effect of equipment.effects) {
+      switch (effect.type) {
+        case EffectType.ATTACK:
+          card.attack -= effect.value;
+          console.log(`      ⚔️  攻击力: -${effect.value} (→${card.attack})`);
+          break;
+          
+        case EffectType.MAX_HEALTH:
+          card.max_health -= effect.value;
+          card.health -= effect.value; // 当前生命也减少
+          // 确保当前生命不会变成负数
+          if (card.health < 1) card.health = 1;
+          console.log(`      ❤️  最大生命: -${effect.value} (→${card.max_health}, 当前:${card.health})`);
+          break;
+          
+        case EffectType.ARMOR:
+          card.armor -= effect.value;
+          console.log(`      🛡️  护甲: -${effect.value} (→${card.armor})`);
+          break;
+          
+        case EffectType.CRIT_RATE:
+          card.crit_rate -= effect.value;
+          console.log(`      💥 暴击率: -${(effect.value * 100).toFixed(1)}% (→${(card.crit_rate * 100).toFixed(1)}%)`);
+          break;
+          
+        case EffectType.CRIT_DAMAGE:
+          card.crit_damage -= effect.value;
+          console.log(`      💢 暴击伤害: -${(effect.value * 100).toFixed(1)}% (→${(card.crit_damage * 100).toFixed(1)}%)`);
+          break;
+          
+        case EffectType.DODGE_RATE:
+          card.dodge_rate -= effect.value;
+          console.log(`      💨 闪避率: -${(effect.value * 100).toFixed(1)}% (→${(card.dodge_rate * 100).toFixed(1)}%)`);
+          break;
+          
+        case EffectType.DAMAGE_AMPLIFY:
+          console.log(`      🗡️  增伤: -${(effect.value * 100).toFixed(1)}%`);
+          break;
+          
+        case EffectType.HEAL_PER_TURN:
+          console.log(`      💚 每回合恢复: -${effect.value}`);
+          break;
+      }
+    }
+  }
 }
 
 // 导出单例

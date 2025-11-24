@@ -6,6 +6,7 @@ const BattleEngine = require('./game/BattleEngine');
 const GoldManager = require('./game/GoldManager');
 const GoldValidator = require('./utils/GoldValidator');
 const { equipmentDB, EquipmentTier } = require('./game/EquipmentDatabase');
+const { craftingDB } = require('./game/CraftingRecipes'); // 🔨 合成系统
 
 const app = express();
 const server = http.createServer(app);
@@ -959,6 +960,187 @@ wss.on('connection', (ws) => {
               }
             });
           });
+          console.log('═══════════════════════════════════════════════════════\n');
+          
+        } else if (data.action === 'craft_equipment') {
+          // 🔨 装备合成（阶段1：定向合成 BASIC → ADVANCED）
+          const gameState = room.gameState;
+          const goldMgr = room.goldManager;
+          
+          console.log('\n═══════════════════════════════════════════════════════');
+          console.log('🔨 [装备合成请求]');
+          
+          // 防御性检查
+          if (!goldMgr) {
+            console.error('⚠️ [错误] GoldManager 不存在，无法合成装备');
+            sendToClient(clientId, {
+              type: 'craft_failed',
+              error: '服务器错误，请重试'
+            });
+            return;
+          }
+          
+          const isHost = (clientId === room.host);
+          const playerTeam = isHost ? 'blue' : 'red';
+          
+          // 解析请求数据
+          const { material_ids, hero_id } = data.data || {};
+          
+          console.log('   玩家:', isHost ? '房主/蓝方' : '客户端/红方');
+          console.log('   材料:', material_ids);
+          console.log('   目标英雄ID:', hero_id);
+          
+          // 验证材料数量
+          if (!material_ids || material_ids.length !== 2) {
+            console.error('[合成失败] 材料数量错误');
+            sendToClient(clientId, {
+              type: 'craft_failed',
+              error: '需要选择2个装备进行合成'
+            });
+            return;
+          }
+          
+          // 查找配方
+          const recipe = craftingDB.findRecipeByMaterials(material_ids);
+          
+          if (!recipe) {
+            console.error('[合成失败] 没有匹配的配方');
+            console.log('   尝试的材料组合:', material_ids);
+            sendToClient(clientId, {
+              type: 'craft_failed',
+              error: '这两个装备无法合成'
+            });
+            return;
+          }
+          
+          console.log('✅ 找到配方: %s', recipe.name);
+          console.log('   合成费用: %d金币', recipe.cost);
+          console.log('───────────────────────────────────────────────────────');
+          
+          // 查找英雄
+          const hero = [...gameState.blueCards, ...gameState.redCards]
+            .find(c => c.id === hero_id);
+          
+          if (!hero) {
+            console.error('[合成失败] 英雄不存在:', hero_id);
+            sendToClient(clientId, {
+              type: 'craft_failed',
+              error: '目标英雄不存在'
+            });
+            return;
+          }
+          
+          // 验证英雄拥有这些装备
+          const heroEquipment = hero.equipment || [];
+          const hasMaterial1 = heroEquipment.some(e => e.id === material_ids[0]);
+          const hasMaterial2 = heroEquipment.some(e => e.id === material_ids[1]);
+          
+          if (!hasMaterial1 || !hasMaterial2) {
+            console.error('[合成失败] 英雄未装备这些物品');
+            console.log('   英雄装备:', heroEquipment.map(e => e.id));
+            sendToClient(clientId, {
+              type: 'craft_failed',
+              error: '该英雄未装备这些物品'
+            });
+            return;
+          }
+          
+          // 使用 GoldManager 扣除金币
+          const deductResult = goldMgr.craftEquipment(playerTeam, recipe.cost, recipe.tier);
+          
+          if (!deductResult.success) {
+            console.error('[合成失败] 金币不足: 需要%d, 当前%d', 
+              recipe.cost, deductResult.oldGold);
+            sendToClient(clientId, {
+              type: 'craft_failed',
+              error: `金币不足 (需要${recipe.cost}金币，当前${deductResult.oldGold}金币)`
+            });
+            return;
+          }
+          
+          console.log('✅ 扣除合成费用: %d → %d (-%d)', 
+            deductResult.oldGold, deductResult.newGold, recipe.cost);
+          
+          // 🔧 先移除材料装备的属性加成
+          const materialsToRemove = hero.equipment.filter(e => 
+            material_ids.includes(e.id)
+          );
+          
+          console.log('🔧 [移除材料装备效果]');
+          for (const material of materialsToRemove) {
+            equipmentDB.removeEquipmentEffects(hero, material);
+          }
+          
+          // 从装备列表中移除
+          hero.equipment = hero.equipment.filter(e => 
+            !material_ids.includes(e.id)
+          );
+          
+          // 创建合成的进阶装备
+          const craftedEquipment = {
+            id: recipe.id,
+            tier: recipe.tier,
+            name: recipe.name,
+            category: recipe.category,
+            description: recipe.description,
+            effects: recipe.effects,
+            icon: recipe.icon || null
+          };
+          
+          // 添加到英雄装备
+          hero.equipment = hero.equipment || [];
+          hero.equipment.push(craftedEquipment);
+          
+          console.log('🎉 合成成功: %s', recipe.name);
+          console.log('   移除材料: %s', recipe.materials.map(m => m.name).join(', '));
+          console.log('   获得装备: %s', recipe.name);
+          
+          // 应用装备效果到英雄属性
+          equipmentDB.applyEquipmentEffects(hero, craftedEquipment);
+          
+          // 发送合成结果给玩家
+          sendToClient(clientId, {
+            type: 'equipment_crafted',
+            hero_id: hero.id,
+            crafted_equipment: craftedEquipment,
+            removed_materials: material_ids,
+            remaining_gold: goldMgr.getGold(playerTeam),
+            hero_stats: {
+              id: hero.id,
+              health: hero.health,
+              max_health: hero.max_health,
+              attack: hero.attack,
+              armor: hero.armor,
+              crit_rate: hero.crit_rate || 0,
+              crit_damage: hero.crit_damage || 1.3,
+              dodge_rate: hero.dodge_rate || 0,
+              shield: hero.shield || 0
+            }
+          });
+          
+          // 广播给对手（只告知合成了装备，不透露具体内容）
+          const opponentId = isHost ? room.guest : room.host;
+          sendToClient(opponentId, {
+            type: 'opponent_crafted',
+            team: playerTeam
+          });
+          
+          // 广播金币变化给双方
+          const goldState = goldMgr.getState();
+          console.log('📢 广播金币变化: 房主💰%d | 客户端💰%d', 
+            goldState.hostGold, goldState.guestGold);
+          
+          room.players.forEach(playerId => {
+            sendToClient(playerId, {
+              type: 'gold_changed',
+              host_gold: goldState.hostGold,
+              guest_gold: goldState.guestGold,
+              income_data: {} // 合成不算收入
+            });
+          });
+          
+          // 🔍 校验金币一致性
+          GoldValidator.validate(gameState, '装备合成后');
           console.log('═══════════════════════════════════════════════════════\n');
           
         } else if (data.action === 'end_turn') {
