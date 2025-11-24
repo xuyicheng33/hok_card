@@ -335,9 +335,9 @@ wss.on('connection', (ws) => {
                 // 🎯 初始技能点和行动点
                 initial_skill_points: 4,
                 actions_per_turn: 3,
-                // 💰 初始金币（通过 GoldManager 访问）
-                host_gold: room.goldManager.hostGold,
-                guest_gold: room.goldManager.guestGold
+                // 💰 初始金币（通过 GoldManager 安全访问）
+                host_gold: room.goldManager ? room.goldManager.hostGold : 10,
+                guest_gold: room.goldManager ? room.goldManager.guestGold : 10
               });
               console.log('[游戏开始]', data.room_id);
             }, 500);
