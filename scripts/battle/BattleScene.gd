@@ -995,24 +995,25 @@ func create_default_online_cards():
 					"",  # skill_description
 					null  # card_image
 				)
-				print("   ⚠️  兜底创建卡牌: %s" % card_data.get("card_name", "未知"))
+				print("   兜底创建卡牌: %s" % card_data.get("card_name", "未知"))
 			
-			# 🎯 用服务器数据覆盖动态属性
+			# 用服务器数据覆盖动态属性
 			card.card_id = server_id
+			card.id = server_id  # 设置实例ID（用于装备等操作）
 			# 如果服务器发送的health与max_health不同（已受伤），则覆盖health
 			var server_health = card_data.get("health", card.max_health)
 			if server_health != card.max_health:
 				card.health = server_health
-				print("   ⚠️  %s 不是满血状态: %d/%d" % [card.card_name, server_health, card.max_health])
+				print("   %s 不是满血状态: %d/%d" % [card.card_name, server_health, card.max_health])
 			card.shield = card_data.get("shield", 0)
 			card.crit_rate = card_data.get("crit_rate", 0.0)
 			card.crit_damage = card_data.get("crit_damage", 1.3)
 			card.skill_cost = card_data.get("skill_cost", 2)
-			# � 特殊属性（公孙离、大乔等）
+			# 特殊属性（公孙离、大乔等）
 			card.dodge_rate = card_data.get("dodge_rate", 0.0)
 			if card.card_name == "公孙离":
 				card.gongsunli_dodge_bonus = card_data.get("dodge_bonus", 0.0)
-			# � 大乔被动标记
+			# 大乔被动标记
 			if card.card_name == "大乔":
 				card.daqiao_passive_used = card_data.get("daqiao_passive_used", false)
 			blue_cards.append(card)

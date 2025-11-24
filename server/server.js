@@ -718,7 +718,7 @@ wss.on('connection', (ws) => {
           room.players.forEach(playerId => {
             sendToClient(playerId, {
               type: 'item_equipped',
-              card_id: card_id,
+              card_id: card.id,  // 🎒 使用找到的卡牌的ID
               equipment: equipment,
               card_stats: {
                 attack: card.attack,
