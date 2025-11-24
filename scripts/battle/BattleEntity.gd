@@ -18,6 +18,7 @@ var attack_label
 var armor_label  
 var shield_label
 var status_container
+var equipment_container  # 🎒 装备图标容器
 
 # 战斗状态
 var is_player_card: bool = true
@@ -337,6 +338,59 @@ func create_battle_info_ui(parent):
 	shield_label.add_theme_font_size_override("font_size", 15)
 	# 护盾值现在常驻显示，不再根据数值隐藏
 	secondary_stats_container.add_child(shield_label)
+	
+	# 🎒 装备图标容器（始终创建，即使没有装备）
+	equipment_container = HBoxContainer.new()
+	equipment_container.add_theme_constant_override("separation", 3)
+	equipment_container.alignment = BoxContainer.ALIGNMENT_CENTER
+	equipment_container.custom_minimum_size = Vector2(0, 24)  # 固定高度，避免布局闪烁
+	stats_container.add_child(equipment_container)
+	
+	# 初始化装备显示
+	update_equipment_display()
+
+## 更新装备显示
+func update_equipment_display():
+	if not equipment_container or not is_instance_valid(equipment_container):
+		return
+	
+	# 清空现有图标
+	for child in equipment_container.get_children():
+		child.queue_free()
+	
+	# 如果有装备，添加图标
+	if card_data and card_data.equipment and card_data.equipment.size() > 0:
+		for equip in card_data.equipment:
+			var equip_icon = create_equipment_icon(equip)
+			if equip_icon:
+				equipment_container.add_child(equip_icon)
+		print("🎒 更新装备显示: %s 装备了 %d 件装备" % [card_data.card_name, card_data.equipment.size()])
+
+## 创建装备小图标
+func create_equipment_icon(equipment: Dictionary) -> TextureRect:
+	if not equipment or not equipment.has("icon"):
+		return null
+	
+	# 构建图标路径
+	var icon_path = "res://assets/equipment/%s/%s" % [
+		"攻击" if equipment.get("category") == "attack" else "防御",
+		equipment.get("icon", "")
+	]
+	
+	# 检查文件是否存在
+	if not ResourceLoader.exists(icon_path):
+		print("⚠️ 装备图标未找到:", icon_path)
+		return null
+	
+	# 创建图标
+	var icon = TextureRect.new()
+	icon.texture = load(icon_path)
+	icon.custom_minimum_size = Vector2(24, 24)
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	icon.tooltip_text = equipment.get("description", equipment.get("name", ""))
+	
+	return icon
 
 ## 设置交互
 func setup_interactions():
@@ -439,6 +493,9 @@ func update_display():
 	if shield_label and is_instance_valid(shield_label):
 		shield_label.text = "🔵%d" % card_data.shield
 		# 护盾常驻显示，不再根据数值隐藏
+	
+	# 更新装备显示
+	update_equipment_display()
 	
 	# 更新可视状态
 	update_visual_state()
