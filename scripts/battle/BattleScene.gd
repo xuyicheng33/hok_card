@@ -3080,8 +3080,11 @@ func _on_item_equipped(equip_data: Dictionary):
 	var equipment = equip_data.get("equipment", {})
 	var card_stats = equip_data.get("card_stats", {})
 	
+	print("📦 装备数据: 卡牌ID=%s, 装备=%s" % [card_id, equipment.get("name", "未知")])
+	
 	# 更新本地卡牌数据
 	var card = BattleManager._find_card_by_id(card_id)
+	print("🔍 查找卡牌结果: %s" % ("找到" if card else "未找到"))
 	if card:
 		# 添加装备到卡牌
 		if not card.equipment:
@@ -3113,8 +3116,9 @@ func _on_item_equipped(equip_data: Dictionary):
 		# 显示消息
 		if message_system:
 			var equipment_name = equipment.get("name", "装备")
-			message_system.add_message("equipment", "%s装备了%s" % [card.card_name, equipment_name])
-			print("📢 装备消息: %s装备了%s" % [card.card_name, equipment_name])
+			var message_text = "%s装备了%s" % [card.card_name, equipment_name]
+			message_system.add_message(message_text, "equipment")  # 🎒 参数顺序：文本, 类型
+			print("📢 装备消息: %s" % message_text)
 	else:
 		print("⚠️ 未找到卡牌:", card_id)
 
