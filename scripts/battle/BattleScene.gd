@@ -2928,19 +2928,24 @@ func _show_hero_selection_for_equipment(equipment: Dictionary):
 	hero_container.add_theme_constant_override("separation", 20)
 	vbox.add_child(hero_container)
 	
-	# 获取我方英雄卡牌
+	# 获取我方英雄卡牌（从BattleScene的player_cards）
 	var my_cards = []
-	if NetworkManager.is_host:
-		my_cards = BattleManager.blue_team_cards
-	else:
-		my_cards = BattleManager.red_team_cards
+	
+	# 从player_cards（实体数组）中提取Card对象
+	for entity in player_cards:
+		if entity and is_instance_valid(entity):
+			var card = entity.get_card()
+			if card and card.health > 0:  # 只显示存活的英雄
+				my_cards.append(card)
+	
+	print("🦸 找到%d个我方英雄" % my_cards.size())
 	
 	# 为每个英雄创建按钮
 	for card in my_cards:
-		if card and card.health > 0:  # 只显示存活的英雄
-			var hero_button = create_hero_option_button(card)
-			hero_button.pressed.connect(_on_hero_selected_for_equipment.bind(equipment, card, overlay))
-			hero_container.add_child(hero_button)
+		var hero_button = create_hero_option_button(card)
+		hero_button.pressed.connect(_on_hero_selected_for_equipment.bind(equipment, card, overlay))
+		hero_container.add_child(hero_button)
+		print("   - 添加英雄按钮: %s" % card.card_name)
 	
 	# 取消按钮
 	var cancel_button = Button.new()
