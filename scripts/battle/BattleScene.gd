@@ -2900,8 +2900,11 @@ func _on_craft_equipment_pressed():
 func _update_card_highlights_for_craft():
 	# 高亮显示有2个以上装备的我方卡牌
 	for entity in player_entities:
-		if entity and entity.card:
-			var card = entity.card
+		if entity and is_instance_valid(entity):
+			var card = entity.get_card()
+			if not card:
+				continue
+			
 			var equipment_count = 0
 			if card.equipment:
 				equipment_count = card.equipment.size()
@@ -2914,10 +2917,10 @@ func _update_card_highlights_for_craft():
 
 ## 🔨 处理合成模式下的卡牌点击
 func _handle_craft_card_click(entity):
-	var card = entity.card
+	var card = entity.get_card()
 	
 	# 检查装备数量
-	if not card.equipment or card.equipment.size() < 2:
+	if not card or not card.equipment or card.equipment.size() < 2:
 		if message_system:
 			message_system.add_message("该英雄装备不足2件", "system")
 		return
