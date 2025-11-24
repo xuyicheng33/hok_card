@@ -1490,7 +1490,7 @@ func _apply_passive_skill_result(data: Dictionary):
 	if effect.has("new_health"):
 		var old_health = card.health
 		card.health = effect.new_health
-		var heal_amount = effect.get("heal_amount", 0)
+		var heal_amount = effect.get("self_heal", 0)  # 🔧 修正：服务器发送的是self_heal
 		print("   💚 生命恢复: %d → %d (+%d)" % [old_health, card.health, heal_amount])
 	
 	if effect.has("new_shield"):
