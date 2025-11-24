@@ -76,21 +76,23 @@ function initGameState(roomId) {
   
   // 蓝方（房主）：瑶 + 大乔 + 公孙离
   const blueCards = [
-    { id: 'yao_005_blue_0', ...yaoData, health: yaoData.max_health, shield: 0 },
-    { id: 'daqiao_006_blue_1', ...daqiaoData, health: daqiaoData.max_health, shield: 0, daqiao_passive_used: false },
-    { id: 'gongsunli_003_blue_2', ...gongsunliData, health: gongsunliData.max_health, shield: 0 }
+    { id: 'yao_005_blue_0', ...yaoData, health: yaoData.max_health, shield: 0, equipment: [] },
+    { id: 'daqiao_006_blue_1', ...daqiaoData, health: daqiaoData.max_health, shield: 0, daqiao_passive_used: false, equipment: [] },
+    { id: 'gongsunli_003_blue_2', ...gongsunliData, health: gongsunliData.max_health, shield: 0, equipment: [] }
   ];
   
   // 红方（客户端）：澜 + 孙尚香 + 朵莉亚
   const redCards = [
-    { id: 'lan_002_red_0', ...lanData, health: lanData.max_health, shield: 0 },
-    { id: 'sunshangxiang_004_red_1', ...sunshangxiangData, health: sunshangxiangData.max_health, shield: 0 },
-    { id: 'duoliya_001_red_2', ...duoliyaData, health: duoliyaData.max_health, shield: 0 }
+    { id: 'lan_002_red_0', ...lanData, health: lanData.max_health, shield: 0, equipment: [] },
+    { id: 'sunshangxiang_004_red_1', ...sunshangxiangData, health: sunshangxiangData.max_health, shield: 0, equipment: [] },
+    { id: 'duoliya_001_red_2', ...duoliyaData, health: duoliyaData.max_health, shield: 0, equipment: [] }
   ];
   
   room.gameState = {
     blueCards,
     redCards,
+    blueTeam: blueCards,  // 🎒 装备系统需要
+    redTeam: redCards,    // 🎒 装备系统需要
     currentTurn: 1,  // 回合从1开始
     currentPlayer: 'host',  // 房主先手
     hostSkillPoints: 4,  // 房主技能点

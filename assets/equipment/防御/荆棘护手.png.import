@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cjuh5asjnrr6h"
-path="res://.godot/imported/荆棘护手.png-323cdc89ed556f7acf5992931ffc816b.ctex"
+path="res://.godot/imported/荆棘护手.png-cb1857e78fb1f31ac75972346beed920.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://装备图标/防御/荆棘护手.png"
-dest_files=["res://.godot/imported/荆棘护手.png-323cdc89ed556f7acf5992931ffc816b.ctex"]
+source_file="res://assets/equipment/防御/荆棘护手.png"
+dest_files=["res://.godot/imported/荆棘护手.png-cb1857e78fb1f31ac75972346beed920.ctex"]
 
 [params]
 

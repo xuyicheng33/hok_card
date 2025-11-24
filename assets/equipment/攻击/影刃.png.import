@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cox78fruxnurn"
-path="res://.godot/imported/影刃.png-6214bd641131ea47968d50fbd1e5c55b.ctex"
+path="res://.godot/imported/影刃.png-347087cb1dc9526aa83ff3f4a936bb9c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://装备图标/攻击/影刃.png"
-dest_files=["res://.godot/imported/影刃.png-6214bd641131ea47968d50fbd1e5c55b.ctex"]
+source_file="res://assets/equipment/攻击/影刃.png"
+dest_files=["res://.godot/imported/影刃.png-347087cb1dc9526aa83ff3f4a936bb9c.ctex"]
 
 [params]
 

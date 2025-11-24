@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bpp4unlf5kbb"
-path="res://.godot/imported/末世.png-8848f4ec8eb914914e5f3a1f487f14af.ctex"
+path="res://.godot/imported/末世.png-a51b18b0f34d20b6ce452e7e2be9ed60.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://装备图标/攻击/末世.png"
-dest_files=["res://.godot/imported/末世.png-8848f4ec8eb914914e5f3a1f487f14af.ctex"]
+source_file="res://assets/equipment/攻击/末世.png"
+dest_files=["res://.godot/imported/末世.png-a51b18b0f34d20b6ce452e7e2be9ed60.ctex"]
 
 [params]
 

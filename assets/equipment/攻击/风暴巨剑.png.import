@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cy53oguydutt5"
-path="res://.godot/imported/风暴巨剑.png-8d7e8a277e402cd5e742720424fff1fe.ctex"
+path="res://.godot/imported/风暴巨剑.png-fa3c0e6877818de84f18c944a390a0c8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://装备图标/攻击/风暴巨剑.png"
-dest_files=["res://.godot/imported/风暴巨剑.png-8d7e8a277e402cd5e742720424fff1fe.ctex"]
+source_file="res://assets/equipment/攻击/风暴巨剑.png"
+dest_files=["res://.godot/imported/风暴巨剑.png-fa3c0e6877818de84f18c944a390a0c8.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://15tlfmo0kguf"
-path="res://.godot/imported/穿云弓.png-cf825d354c42ff7a1664fb79428511e5.ctex"
+path="res://.godot/imported/穿云弓.png-27bdf0701032087f1003c626beb41844.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://装备图标/攻击/穿云弓.png"
-dest_files=["res://.godot/imported/穿云弓.png-cf825d354c42ff7a1664fb79428511e5.ctex"]
+source_file="res://assets/equipment/攻击/穿云弓.png"
+dest_files=["res://.godot/imported/穿云弓.png-27bdf0701032087f1003c626beb41844.ctex"]
 
 [params]
 

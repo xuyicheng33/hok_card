@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bx3x7mye4yh2p"
-path="res://.godot/imported/铸梦·逐风.png-35ea7ed11cca5aeccccd32388aca3df2.ctex"
+path="res://.godot/imported/铸梦·逐风.png-2366ad8ec6618f966af4212b2b60df01.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://装备图标/攻击/铸梦·逐风.png"
-dest_files=["res://.godot/imported/铸梦·逐风.png-35ea7ed11cca5aeccccd32388aca3df2.ctex"]
+source_file="res://assets/equipment/攻击/铸梦·逐风.png"
+dest_files=["res://.godot/imported/铸梦·逐风.png-2366ad8ec6618f966af4212b2b60df01.ctex"]
 
 [params]
 

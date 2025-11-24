@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b8ykctkt4op27"
-path="res://.godot/imported/红莲斗篷.png-a1fce27efb651c374abb9674278f4c3b.ctex"
+path="res://.godot/imported/红莲斗篷.png-5c17b846bfb899d4944ad7fd0e4e137b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://装备图标/防御/红莲斗篷.png"
-dest_files=["res://.godot/imported/红莲斗篷.png-a1fce27efb651c374abb9674278f4c3b.ctex"]
+source_file="res://assets/equipment/防御/红莲斗篷.png"
+dest_files=["res://.godot/imported/红莲斗篷.png-5c17b846bfb899d4944ad7fd0e4e137b.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://hwv27fm48xnx"
-path="res://.godot/imported/纯净苍穹.png-921878be41402e93b24462d5cc5f203b.ctex"
+path="res://.godot/imported/纯净苍穹.png-ab764e9a2d6820513863cddea1ede079.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://装备图标/攻击/纯净苍穹.png"
-dest_files=["res://.godot/imported/纯净苍穹.png-921878be41402e93b24462d5cc5f203b.ctex"]
+source_file="res://assets/equipment/攻击/纯净苍穹.png"
+dest_files=["res://.godot/imported/纯净苍穹.png-ab764e9a2d6820513863cddea1ede079.ctex"]
 
 [params]
 

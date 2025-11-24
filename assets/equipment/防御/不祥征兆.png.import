@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cqxweo6at3mru"
-path="res://.godot/imported/不祥征兆.png-68d70bffd422e3b6321e64baae89c032.ctex"
+path="res://.godot/imported/不祥征兆.png-73bd43017289d45052a508af8e4e9899.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://装备图标/防御/不祥征兆.png"
-dest_files=["res://.godot/imported/不祥征兆.png-68d70bffd422e3b6321e64baae89c032.ctex"]
+source_file="res://assets/equipment/防御/不祥征兆.png"
+dest_files=["res://.godot/imported/不祥征兆.png-73bd43017289d45052a508af8e4e9899.ctex"]
 
 [params]
 

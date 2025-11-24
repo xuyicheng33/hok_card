@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bfwbdp6p1mp4m"
-path="res://.godot/imported/贤者的庇护.png-48366ab2f39db659f348f62341d67d0e.ctex"
+path="res://.godot/imported/贤者的庇护.png-aa91ed60566d813ba17c1b8a15d52df0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://装备图标/防御/贤者的庇护.png"
-dest_files=["res://.godot/imported/贤者的庇护.png-48366ab2f39db659f348f62341d67d0e.ctex"]
+source_file="res://assets/equipment/防御/贤者的庇护.png"
+dest_files=["res://.godot/imported/贤者的庇护.png-aa91ed60566d813ba17c1b8a15d52df0.ctex"]
 
 [params]
 

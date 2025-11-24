@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bpj5ra5hkphel"
-path="res://.godot/imported/怒魂.png-acbf727458d66f8c20f7294ab9f38b60.ctex"
+path="res://.godot/imported/怒魂.png-6af56d5a5f877d1e83e6d6f56a795436.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://装备图标/防御/怒魂.png"
-dest_files=["res://.godot/imported/怒魂.png-acbf727458d66f8c20f7294ab9f38b60.ctex"]
+source_file="res://assets/equipment/防御/怒魂.png"
+dest_files=["res://.godot/imported/怒魂.png-6af56d5a5f877d1e83e6d6f56a795436.ctex"]
 
 [params]
 

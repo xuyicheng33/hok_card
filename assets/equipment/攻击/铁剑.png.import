@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ca1vmjeyghwpv"
-path="res://.godot/imported/铁剑.png-e85e2eac0e61d606576c1224f6e37c2c.ctex"
+path="res://.godot/imported/铁剑.png-fe1389b050c2ffd332d23d263710d094.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://装备图标/攻击/铁剑.png"
-dest_files=["res://.godot/imported/铁剑.png-e85e2eac0e61d606576c1224f6e37c2c.ctex"]
+source_file="res://assets/equipment/攻击/铁剑.png"
+dest_files=["res://.godot/imported/铁剑.png-fe1389b050c2ffd332d23d263710d094.ctex"]
 
 [params]
 

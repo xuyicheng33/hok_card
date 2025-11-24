@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://0ok377umtq03"
-path="res://.godot/imported/魔女斗篷.png-9e969e238c807a85540975988f71f444.ctex"
+path="res://.godot/imported/魔女斗篷.png-6a59bdf9687d4f3fc23b589d9fd9a1bd.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://装备图标/防御/魔女斗篷.png"
-dest_files=["res://.godot/imported/魔女斗篷.png-9e969e238c807a85540975988f71f444.ctex"]
+source_file="res://assets/equipment/防御/魔女斗篷.png"
+dest_files=["res://.godot/imported/魔女斗篷.png-6a59bdf9687d4f3fc23b589d9fd9a1bd.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dlu7bimwg4ef1"
-path="res://.godot/imported/冲能拳套.png-62eabdf9c46d06beefcee4d5c14fbac6.ctex"
+path="res://.godot/imported/冲能拳套.png-5d6013baf2e4dafc47d5ff675dbe97c5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://装备图标/攻击/冲能拳套.png"
-dest_files=["res://.godot/imported/冲能拳套.png-62eabdf9c46d06beefcee4d5c14fbac6.ctex"]
+source_file="res://assets/equipment/攻击/冲能拳套.png"
+dest_files=["res://.godot/imported/冲能拳套.png-5d6013baf2e4dafc47d5ff675dbe97c5.ctex"]
 
 [params]
 

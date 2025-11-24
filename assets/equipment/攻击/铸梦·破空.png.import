@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://craw7d3mssc46"
-path="res://.godot/imported/铸梦·破空.png-02142012d3972a5bd71dd29c1a9feef5.ctex"
+path="res://.godot/imported/铸梦·破空.png-9f9a292cf65bf41c4f1b21b3b954b2d3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://装备图标/攻击/铸梦·破空.png"
-dest_files=["res://.godot/imported/铸梦·破空.png-02142012d3972a5bd71dd29c1a9feef5.ctex"]
+source_file="res://assets/equipment/攻击/铸梦·破空.png"
+dest_files=["res://.godot/imported/铸梦·破空.png-9f9a292cf65bf41c4f1b21b3b954b2d3.ctex"]
 
 [params]
 

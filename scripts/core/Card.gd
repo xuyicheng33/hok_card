@@ -40,6 +40,9 @@ var stun_turns: int = 0  ## 眩晕剩余回合数
 # 杨玉环被动技能相关属性
 var yangyuhuan_skill_used: bool = false  ## 是否刚释放了主动技能
 
+# 🎒 装备系统
+var equipment: Array = []  ## 装备列表（最多2件）
+
 ## 构造函数
 func _init(
 	_card_name: String = "",

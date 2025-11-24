@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://degaubrbbmuax"
-path="res://.godot/imported/吸血之镰.png-65757b45163c2bb2b71aa566d20f8987.ctex"
+path="res://.godot/imported/吸血之镰.png-ee5487f197a93d01e43921b7d2f4c7ad.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://装备图标/攻击/吸血之镰.png"
-dest_files=["res://.godot/imported/吸血之镰.png-65757b45163c2bb2b71aa566d20f8987.ctex"]
+source_file="res://assets/equipment/攻击/吸血之镰.png"
+dest_files=["res://.godot/imported/吸血之镰.png-ee5487f197a93d01e43921b7d2f4c7ad.ctex"]
 
 [params]
 

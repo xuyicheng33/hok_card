@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dhckdls2n0w4c"
-path="res://.godot/imported/暴烈之甲.png-8fd17f3a7fecc6626aa7b87ae0f724df.ctex"
+path="res://.godot/imported/暴烈之甲.png-63faed60cb5ae6ce8baaf34c2df21938.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://装备图标/防御/暴烈之甲.png"
-dest_files=["res://.godot/imported/暴烈之甲.png-8fd17f3a7fecc6626aa7b87ae0f724df.ctex"]
+source_file="res://assets/equipment/防御/暴烈之甲.png"
+dest_files=["res://.godot/imported/暴烈之甲.png-63faed60cb5ae6ce8baaf34c2df21938.ctex"]
 
 [params]
 

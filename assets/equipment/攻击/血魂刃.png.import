@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dnfw3jkl10x5u"
-path="res://.godot/imported/血魂刃.png-ab5b9d91e15dc80ddd3c050138c7878e.ctex"
+path="res://.godot/imported/血魂刃.png-0f3f4e1e29c3748768505cab6fc345c4.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://装备图标/攻击/血魂刃.png"
-dest_files=["res://.godot/imported/血魂刃.png-ab5b9d91e15dc80ddd3c050138c7878e.ctex"]
+source_file="res://assets/equipment/攻击/血魂刃.png"
+dest_files=["res://.godot/imported/血魂刃.png-0f3f4e1e29c3748768505cab6fc345c4.ctex"]
 
 [params]
 

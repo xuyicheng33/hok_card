@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dt6nrcgnjbpkn"
-path="res://.godot/imported/雪山圆盾.png-9b85ce6135f8efedec6779c464bb1890.ctex"
+path="res://.godot/imported/雪山圆盾.png-8c4c232fc6ba18e0edb123cc07646502.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://装备图标/防御/雪山圆盾.png"
-dest_files=["res://.godot/imported/雪山圆盾.png-9b85ce6135f8efedec6779c464bb1890.ctex"]
+source_file="res://assets/equipment/防御/雪山圆盾.png"
+dest_files=["res://.godot/imported/雪山圆盾.png-8c4c232fc6ba18e0edb123cc07646502.ctex"]
 
 [params]
 

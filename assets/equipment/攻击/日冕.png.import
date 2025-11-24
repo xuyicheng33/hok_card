@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://vbjlcijmqe65"
-path="res://.godot/imported/日冕.png-02ecc0f7a8cb65e361d9866fca30338c.ctex"
+path="res://.godot/imported/日冕.png-a87a534bd24e9b57a3fdd0113c01789b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://装备图标/攻击/日冕.png"
-dest_files=["res://.godot/imported/日冕.png-02ecc0f7a8cb65e361d9866fca30338c.ctex"]
+source_file="res://assets/equipment/攻击/日冕.png"
+dest_files=["res://.godot/imported/日冕.png-a87a534bd24e9b57a3fdd0113c01789b.ctex"]
 
 [params]
 

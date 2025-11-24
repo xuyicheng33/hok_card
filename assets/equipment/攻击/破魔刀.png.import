@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://7fahw6cyf257"
-path="res://.godot/imported/破魔刀.png-f0e35aac0874240ad972751dd072d657.ctex"
+path="res://.godot/imported/破魔刀.png-b3d7f07b13670ebce130e2ec3fba5d3f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://装备图标/攻击/破魔刀.png"
-dest_files=["res://.godot/imported/破魔刀.png-f0e35aac0874240ad972751dd072d657.ctex"]
+source_file="res://assets/equipment/攻击/破魔刀.png"
+dest_files=["res://.godot/imported/破魔刀.png-b3d7f07b13670ebce130e2ec3fba5d3f.ctex"]
 
 [params]
 

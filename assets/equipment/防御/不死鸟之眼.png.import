@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b74cqqu0dbvs1"
-path="res://.godot/imported/不死鸟之眼.png-2832b6798ab6276d55858fd13661e1a6.ctex"
+path="res://.godot/imported/不死鸟之眼.png-7b350ed410311cd5242f138435c5b825.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://装备图标/防御/不死鸟之眼.png"
-dest_files=["res://.godot/imported/不死鸟之眼.png-2832b6798ab6276d55858fd13661e1a6.ctex"]
+source_file="res://assets/equipment/防御/不死鸟之眼.png"
+dest_files=["res://.godot/imported/不死鸟之眼.png-7b350ed410311cd5242f138435c5b825.ctex"]
 
 [params]
 

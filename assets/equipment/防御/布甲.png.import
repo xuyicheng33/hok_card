@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bdj87h7qpv0t2"
-path="res://.godot/imported/布甲.png-bf867acbe155307b0c30c767fa847544.ctex"
+path="res://.godot/imported/布甲.png-bc52e25da03fb1a42599e40891b76c07.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://装备图标/防御/布甲.png"
-dest_files=["res://.godot/imported/布甲.png-bf867acbe155307b0c30c767fa847544.ctex"]
+source_file="res://assets/equipment/防御/布甲.png"
+dest_files=["res://.godot/imported/布甲.png-bc52e25da03fb1a42599e40891b76c07.ctex"]
 
 [params]
 

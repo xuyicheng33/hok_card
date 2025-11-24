@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://27w2vjpcw4f0"
-path="res://.godot/imported/力量腰带.png-70a6bd9aec1ba2abbe49a1c0428bca53.ctex"
+path="res://.godot/imported/力量腰带.png-96ac544ec273cabc80f3be3f93d3dbaa.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://装备图标/防御/力量腰带.png"
-dest_files=["res://.godot/imported/力量腰带.png-70a6bd9aec1ba2abbe49a1c0428bca53.ctex"]
+source_file="res://assets/equipment/防御/力量腰带.png"
+dest_files=["res://.godot/imported/力量腰带.png-96ac544ec273cabc80f3be3f93d3dbaa.ctex"]
 
 [params]
 

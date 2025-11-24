@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://k40pqsw4odoa"
-path="res://.godot/imported/暗夜小甲.png-49ee8c70200770191cd9d140a90567ba.ctex"
+path="res://.godot/imported/暗夜小甲.png-556b703d5f67217d1f40df849481b9b5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://装备图标/防御/暗夜小甲.png"
-dest_files=["res://.godot/imported/暗夜小甲.png-49ee8c70200770191cd9d140a90567ba.ctex"]
+source_file="res://assets/equipment/防御/暗夜小甲.png"
+dest_files=["res://.godot/imported/暗夜小甲.png-556b703d5f67217d1f40df849481b9b5.ctex"]
 
 [params]
 

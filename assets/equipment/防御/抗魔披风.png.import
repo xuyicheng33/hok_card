@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dn18a5w13rs47"
-path="res://.godot/imported/抗魔披风.png-1167cb7ae28e98835616cc735229b51c.ctex"
+path="res://.godot/imported/抗魔披风.png-829d8045ee32e074e9a46cc5addec4e3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://装备图标/防御/抗魔披风.png"
-dest_files=["res://.godot/imported/抗魔披风.png-1167cb7ae28e98835616cc735229b51c.ctex"]
+source_file="res://assets/equipment/防御/抗魔披风.png"
+dest_files=["res://.godot/imported/抗魔披风.png-829d8045ee32e074e9a46cc5addec4e3.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bkfung4o78wls"
-path="res://.godot/imported/泣血之刃.png-0c03210eabdd1c0edd07fdd53933d5b4.ctex"
+path="res://.godot/imported/泣血之刃.png-79c7e903d10cb29b640af29626effa40.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://装备图标/攻击/泣血之刃.png"
-dest_files=["res://.godot/imported/泣血之刃.png-0c03210eabdd1c0edd07fdd53933d5b4.ctex"]
+source_file="res://assets/equipment/攻击/泣血之刃.png"
+dest_files=["res://.godot/imported/泣血之刃.png-79c7e903d10cb29b640af29626effa40.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://mcl3c6cfh2g3"
-path="res://.godot/imported/破军.png-7a3d688ee1599040b967a99aeca8e102.ctex"
+path="res://.godot/imported/破军.png-4dbc2a3ae5ffc600cd159ce1fd9630c6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://装备图标/攻击/破军.png"
-dest_files=["res://.godot/imported/破军.png-7a3d688ee1599040b967a99aeca8e102.ctex"]
+source_file="res://assets/equipment/攻击/破军.png"
+dest_files=["res://.godot/imported/破军.png-4dbc2a3ae5ffc600cd159ce1fd9630c6.ctex"]
 
 [params]
 

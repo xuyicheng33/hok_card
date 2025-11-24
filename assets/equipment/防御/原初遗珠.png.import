@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dwg21feuv452t"
-path="res://.godot/imported/原初遗珠.png-17c981e47dabf45268e5f7afccfd1795.ctex"
+path="res://.godot/imported/原初遗珠.png-4fc6147e512f0db5f6877de58cc723eb.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://装备图标/防御/原初遗珠.png"
-dest_files=["res://.godot/imported/原初遗珠.png-17c981e47dabf45268e5f7afccfd1795.ctex"]
+source_file="res://assets/equipment/防御/原初遗珠.png"
+dest_files=["res://.godot/imported/原初遗珠.png-4fc6147e512f0db5f6877de58cc723eb.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bexe7cwlsc453"
-path="res://.godot/imported/神隐斗篷.png-694780544b29ae88bb2ff8d88583621c.ctex"
+path="res://.godot/imported/神隐斗篷.png-6b7ebb2a3255f9fc19ddac01cd91f10a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://装备图标/防御/神隐斗篷.png"
-dest_files=["res://.godot/imported/神隐斗篷.png-694780544b29ae88bb2ff8d88583621c.ctex"]
+source_file="res://assets/equipment/防御/神隐斗篷.png"
+dest_files=["res://.godot/imported/神隐斗篷.png-6b7ebb2a3255f9fc19ddac01cd91f10a.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dhrtxbs5b4crg"
-path="res://.godot/imported/天穹.png-21aa066b220bd98ef1f4346ae631f99a.ctex"
+path="res://.godot/imported/天穹.png-e00452b6b7725e4a4f5c03154a0391da.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://装备图标/攻击/天穹.png"
-dest_files=["res://.godot/imported/天穹.png-21aa066b220bd98ef1f4346ae631f99a.ctex"]
+source_file="res://assets/equipment/攻击/天穹.png"
+dest_files=["res://.godot/imported/天穹.png-e00452b6b7725e4a4f5c03154a0391da.ctex"]
 
 [params]
 
