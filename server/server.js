@@ -572,7 +572,12 @@ wss.on('connection', (ws) => {
           const playerGold = isHost ? gameState.hostGold : gameState.guestGold;
           const equipmentCost = 15; // 固定15金币
           
-          console.log('[装备购买] 玩家:', isHost ? '房主' : '客户端', '金币:', playerGold);
+          console.log('\n═══════════════════════════════════════════════════════');
+          console.log('💰 [装备购买请求]');
+          console.log('   玩家:', isHost ? '房主/蓝方' : '客户端/红方');
+          console.log('   当前金币:', playerGold);
+          console.log('   购买消耗:', equipmentCost);
+          console.log('───────────────────────────────────────────────────────');
           
           // 检查金币是否足够
           if (playerGold < equipmentCost) {
@@ -585,17 +590,24 @@ wss.on('connection', (ws) => {
           }
           
           // 扣除金币
+          const oldGold = playerGold;
           if (isHost) {
             gameState.hostGold -= equipmentCost;
           } else {
             gameState.guestGold -= equipmentCost;
           }
+          const newGold = isHost ? gameState.hostGold : gameState.guestGold;
+          console.log('✅ 扣除金币: %d → %d (-%d)', oldGold, newGold, equipmentCost);
           
           // 抽取3个随机装备
           const drawnEquipment = equipmentDB.drawRandomEquipment(EquipmentTier.BASIC, 3);
-          console.log('[装备抽取] 抽到:', drawnEquipment.map(e => e.name).join(', '));
+          console.log('🎲 抽取装备结果 (%d个):', drawnEquipment.length);
+          drawnEquipment.forEach((equip, index) => {
+            console.log('   %d. [%s] %s - %s', index + 1, equip.category === 'attack' ? '攻击' : '防御', equip.name, equip.description);
+          });
           
           // 发送抽取结果给玩家
+          console.log('📤 发送装备选项给玩家');
           sendToClient(clientId, {
             type: 'equipment_drawn',
             equipment_options: drawnEquipment,
@@ -603,6 +615,7 @@ wss.on('connection', (ws) => {
           });
           
           // 广播金币变化给双方
+          console.log('📢 广播金币变化: 房主💰%d | 客户端💰%d', gameState.hostGold, gameState.guestGold);
           room.players.forEach(playerId => {
             sendToClient(playerId, {
               type: 'gold_changed',
@@ -611,13 +624,19 @@ wss.on('connection', (ws) => {
               income_data: {} // 购买装备不算收入
             });
           });
+          console.log('═══════════════════════════════════════════════════════\n');
           
         } else if (data.action === 'equip_item') {
           // 🎒 装备物品到英雄
           const { equipment_id, card_id } = data.data;
           const isHost = (clientId === room.host);
           
-          console.log('[装备物品] 装备ID:', equipment_id, '英雄ID:', card_id);
+          console.log('\n═══════════════════════════════════════════════════════');
+          console.log('🎒 [装备物品请求]');
+          console.log('   玩家:', isHost ? '房主/蓝方' : '客户端/红方');
+          console.log('   装备ID:', equipment_id);
+          console.log('   英雄ID:', card_id);
+          console.log('───────────────────────────────────────────────────────');
           
           // 查找英雄卡牌
           const card = engine.findCard(card_id);
@@ -667,14 +686,39 @@ wss.on('connection', (ws) => {
             return;
           }
           
+          // 记录装备前属性
+          const oldStats = {
+            attack: card.attack,
+            max_health: card.max_health,
+            health: card.health,
+            armor: card.armor,
+            crit_rate: card.crit_rate,
+            crit_damage: card.crit_damage,
+            dodge_rate: card.dodge_rate
+          };
+          
           // 添加装备
           card.equipment.push(equipment);
-          console.log('✅ [装备成功] %s 装备了 %s (当前%d件)', card.card_name, equipment.name, card.equipment.length);
+          console.log('✅ 装备成功添加到英雄');
+          console.log('   英雄: %s', card.card_name);
+          console.log('   装备: [%s] %s', equipment.category === 'attack' ? '攻击' : '防御', equipment.name);
+          console.log('   当前装备数: %d/2', card.equipment.length);
           
           // 应用装备效果
+          console.log('🔧 应用装备效果:');
           equipmentDB.applyEquipmentEffects(card, equipment);
           
+          // 显示属性变化
+          console.log('📊 属性变化汇总:');
+          if (card.attack !== oldStats.attack) console.log('   ⚔️  攻击: %d → %d (+%d)', oldStats.attack, card.attack, card.attack - oldStats.attack);
+          if (card.max_health !== oldStats.max_health) console.log('   ❤️  生命: %d/%d → %d/%d', oldStats.health, oldStats.max_health, card.health, card.max_health);
+          if (card.armor !== oldStats.armor) console.log('   🛡️  护甲: %d → %d (+%d)', oldStats.armor, card.armor, card.armor - oldStats.armor);
+          if (card.crit_rate !== oldStats.crit_rate) console.log('   💥 暴击率: %.1f%% → %.1f%%', oldStats.crit_rate * 100, card.crit_rate * 100);
+          if (card.crit_damage !== oldStats.crit_damage) console.log('   💢 暴击伤害: %.1f%% → %.1f%%', oldStats.crit_damage * 100, card.crit_damage * 100);
+          if (card.dodge_rate !== oldStats.dodge_rate) console.log('   💨 闪避率: %.1f%% → %.1f%%', oldStats.dodge_rate * 100, card.dodge_rate * 100);
+          
           // 广播装备结果给双方
+          console.log('📢 广播装备结果给双方玩家');
           room.players.forEach(playerId => {
             sendToClient(playerId, {
               type: 'item_equipped',
@@ -691,6 +735,7 @@ wss.on('connection', (ws) => {
               }
             });
           });
+          console.log('═══════════════════════════════════════════════════════\n');
           
         } else if (data.action === 'end_turn') {
           // 🎯 服务器权威管理回合切换
