@@ -490,23 +490,21 @@ func add_passive_skill(character: String, skill_name: String, effect: String, de
 						detail_text += "\n  当前闪避概率：%.1f%%" % details.get("current_dodge_rate", 0)
 						detail_text += "\n（最多可叠加至+20%闪避概率，最高50%）"
 			"欢歌":
-				var heal_amount = details.get("heal_amount", 0)
+				# 使用正确的字段名
+				var self_heal = details.get("self_heal", 0)
 				var overflow_shield = details.get("overflow_shield", 0)
+				var ally_name = details.get("ally_name", "")
+				var ally_heal = details.get("ally_heal", 0)
 				
-				# 根据不同情况显示不同消息
-				if heal_amount > 0 and overflow_shield > 0:
-					# 恢复生命 + 溢出护盾
-					detail_text += "\n  恢复生命值：%d" % heal_amount
-					detail_text += "\n  溢出%d点转化为护盾" % overflow_shield
-				elif heal_amount == 0 and overflow_shield > 0:
-					# 满血，全部转护盾
-					detail_text += "\n  生命值已满，获得%d点护盾" % overflow_shield
-				elif heal_amount > 0 and overflow_shield == 0:
-					# 只恢复生命
-					detail_text += "\n  恢复生命值：%d" % heal_amount
-				else:
-					# 满血且无溢出
-					detail_text += "\n  生命值已满"
+				# 根据实际数据显示
+				if self_heal > 0:
+					detail_text += "\n  朵莉亚恢复：%d" % self_heal
+				if overflow_shield > 0:
+					detail_text += "\n  溢出护盾：%d" % overflow_shield
+				if ally_heal > 0 and ally_name != "":
+					detail_text += "\n  %s恢复：%d" % [ally_name, ally_heal]
+				if self_heal == 0 and overflow_shield == 0 and ally_heal == 0:
+					detail_text += "\n  无效果"
 				
 			"狩猎":
 				var damage_bonus = details.get("damage_bonus", 0.3)
