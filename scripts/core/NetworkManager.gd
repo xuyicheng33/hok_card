@@ -40,6 +40,7 @@ signal opponent_disconnected()
 signal turn_changed(turn_data: Dictionary)  # 🎯 服务器权威回合变化
 signal equipment_drawn(equipment_options: Array)  # 💰 装备抽取结果
 signal item_equipped(equip_data: Dictionary)  # 🎒 装备成功
+signal game_over(game_result: Dictionary)  # 🏆 游戏结束（服务器权威）
 
 func _ready():
 	print("网络管理器初始化...")
@@ -218,6 +219,28 @@ func handle_server_message(message: Dictionary):
 				"is_gold_only": true  # 标记这只是金币更新
 			}
 			turn_changed.emit(gold_update)
+		
+		"game_over":
+			var winner = message.get("winner", "")
+			var winner_name = message.get("winner_name", "")
+			var turns = message.get("turns", 0)
+			var reason = message.get("reason", "unknown")
+			var final_state = message.get("final_state", {})
+			
+			print("\n🏆═══════════════════════════════════════════════════════")
+			print("   游戏结束！")
+			print("   胜者: %s (%s)" % [winner_name, winner])
+			print("   回合数: %d" % turns)
+			print("   原因: %s" % reason)
+			if final_state:
+				print("   蓝方存活: %d/3 | 红方存活: %d/3" % [
+					final_state.get("blue_alive", 0),
+					final_state.get("red_alive", 0)
+				])
+			print("═══════════════════════════════════════════════════════\n")
+			
+			# 发送游戏结束信号
+			game_over.emit(message)
 		
 		"error":
 			var error_msg = message.get("message", "未知错误")

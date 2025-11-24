@@ -91,6 +91,7 @@ func _connect_network_signals():
 	if NetworkManager:
 		NetworkManager.opponent_action_received.connect(_on_opponent_action_received)
 		NetworkManager.turn_changed.connect(_on_server_turn_changed)
+		NetworkManager.game_over.connect(_on_server_game_over)
 		print("已连接网络管理器信号")
 
 ## 初始化所有状态
@@ -1779,3 +1780,57 @@ func get_action_info() -> Dictionary:
 		"player_remaining": get_remaining_actions(true),
 		"enemy_remaining": get_remaining_actions(false)
 	}
+
+## 🏆 处理服务器游戏结束（在线模式权威判定）
+func _on_server_game_over(game_result: Dictionary):
+	if not is_online_mode:
+		return
+	
+	var winner = game_result.get("winner", "")
+	var winner_name = game_result.get("winner_name", "未知")
+	var loser_name = game_result.get("loser_name", "未知")
+	var turns = game_result.get("turns", 0)
+	var reason = game_result.get("reason", "unknown")
+	var final_state = game_result.get("final_state", {})
+	
+	# 判断是否我方获胜
+	var is_my_victory = false
+	if NetworkManager.is_host:
+		is_my_victory = (winner == "blue")
+	else:
+		is_my_victory = (winner == "red")
+	
+	print("\n🏆═══════════════════════════════════════════════════════")
+	print("   服务器权威判定：游戏结束！")
+	print("   胜者: %s" % winner_name)
+	print("   败者: %s" % loser_name)
+	print("   结果: %s" % ("我方胜利！" if is_my_victory else "对方胜利！"))
+	print("   回合数: %d" % turns)
+	print("   原因: %s" % reason)
+	if final_state:
+		print("   最终状态:")
+		print("      蓝方存活: %d/3" % final_state.get("blue_alive", 0))
+		print("      红方存活: %d/3" % final_state.get("red_alive", 0))
+		print("      房主金币: 💰%d" % final_state.get("host_gold", 0))
+		print("      客户端金币: 💰%d" % final_state.get("guest_gold", 0))
+	print("═══════════════════════════════════════════════════════\n")
+	
+	# 构建战斗结果
+	battle_result = {
+		"victory": is_my_victory,
+		"turns": turns,
+		"winner_name": winner_name,
+		"loser_name": loser_name,
+		"reason": reason,
+		"final_state": final_state,
+		"remaining_player_cards": player_cards.size(),
+		"remaining_enemy_cards": enemy_cards.size()
+	}
+	
+	# 切换到战斗结束状态
+	change_to_state("battle_end")
+	
+	# 发送战斗结束信号（UI会监听这个信号显示结果界面）
+	battle_ended.emit(battle_result)
+	
+	print("✅ 战斗结束处理完成，已发送 battle_ended 信号")

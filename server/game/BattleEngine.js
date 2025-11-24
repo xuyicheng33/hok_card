@@ -120,10 +120,11 @@ class BattleEngine {
     
     console.log(`   📊 最终伤害: ${actualDamage}, ${target.card_name} HP:${target.health}/${target.max_health} 护盾:${target.shield || 0}`);
     if (target.health <= 0) {
-      console.log(`   ☠️  ${target.card_name} 被击败!`);
+      console.log(`   ☠️  ${target.card_name} 受到致命伤害!`);
     }
     
     // 🌟 大乔被动技能：宿命之海（受到致命伤害时触发）
+    // ⚠️ 必须在击杀奖励之前检查，因为大乔可能复活
     let daqiaoPassiveTriggered = false;
     let daqiaoPassiveData = null;
     
@@ -178,6 +179,21 @@ class BattleEngine {
       if (overflowPoints > 0) {
         console.log(`   🛡️ 溢出${overflowPoints}点技能点 → ${shieldFromOverflow}护盾 (总护盾:${target.shield})`);
       }
+    }
+    
+    // 💰 击杀奖励系统（在大乔被动之后判定，确保大乔复活时不发放奖励）
+    let killReward = 0;
+    if (target.health <= 0 && !isDodged) {
+      killReward = 20;
+      const isAttackerBlue = this.state.blueCards.some(c => c.id === attackerId);
+      if (isAttackerBlue) {
+        this.state.blueGold = (this.state.blueGold || 0) + killReward;
+        this.state.hostGold = this.state.blueGold;
+      } else {
+        this.state.redGold = (this.state.redGold || 0) + killReward;
+        this.state.guestGold = this.state.redGold;
+      }
+      console.log(`   💰 击杀奖励: ${attacker.card_name} 获得 ${killReward} 金币!`);
     }
     
     // 🎯 孙尚香被动技能：千金重弩（攻击命中时70%概率获得1技能点）
@@ -261,6 +277,8 @@ class BattleEngine {
       target_health: target.health,
       target_shield: target.shield || 0,  // 🛡️ 同步护盾值
       target_dead: target.health <= 0,
+      // 💰 击杀奖励
+      kill_reward: killReward,
       // 🌟 大乔被动技能：宿命之海
       daqiao_passive_triggered: daqiaoPassiveTriggered,
       daqiao_passive_data: daqiaoPassiveData,

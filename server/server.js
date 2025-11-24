@@ -61,6 +61,93 @@ function calculateGoldIncome(currentGold) {
   };
 }
 
+// 🏆 检查游戏是否结束（服务器权威）
+function checkGameOver(roomId, room) {
+  const gameState = room.gameState;
+  
+  // 统计存活卡牌
+  const blueAlive = gameState.blueCards.filter(c => c.health > 0).length;
+  const redAlive = gameState.redCards.filter(c => c.health > 0).length;
+  
+  // 检查是否有队伍全灭
+  if (blueAlive === 0) {
+    console.log('\n🎉═══════════════════════════════════════════════════════');
+    console.log('   游戏结束：红方（客户端）获胜！');
+    console.log('   回合数: %d', gameState.currentTurn);
+    console.log('   蓝方存活: %d/3 | 红方存活: %d/3', blueAlive, redAlive);
+    console.log('═══════════════════════════════════════════════════════\n');
+    
+    // 广播游戏结束
+    broadcastToRoom(roomId, {
+      type: 'game_over',
+      winner: 'red',
+      winner_name: room.playerNames[room.guest] || '红方',
+      loser: 'blue',
+      loser_name: room.playerNames[room.host] || '蓝方',
+      turns: gameState.currentTurn,
+      reason: 'team_eliminated',
+      final_state: {
+        blue_alive: blueAlive,
+        red_alive: redAlive,
+        host_gold: gameState.hostGold,
+        guest_gold: gameState.guestGold
+      }
+    });
+    
+    // 清理房间资源
+    console.log('[房间清理] 游戏结束，清理房间:', roomId);
+    rooms.delete(roomId);
+    battleEngines.delete(roomId);
+    
+    // 断开玩家连接映射
+    room.players.forEach(playerId => {
+      playerRooms.delete(playerId);
+    });
+    
+    return true;
+  }
+  
+  if (redAlive === 0) {
+    console.log('\n🎉═══════════════════════════════════════════════════════');
+    console.log('   游戏结束：蓝方（房主）获胜！');
+    console.log('   回合数: %d', gameState.currentTurn);
+    console.log('   蓝方存活: %d/3 | 红方存活: %d/3', blueAlive, redAlive);
+    console.log('═══════════════════════════════════════════════════════\n');
+    
+    // 广播游戏结束
+    broadcastToRoom(roomId, {
+      type: 'game_over',
+      winner: 'blue',
+      winner_name: room.playerNames[room.host] || '蓝方',
+      loser: 'red',
+      loser_name: room.playerNames[room.guest] || '红方',
+      turns: gameState.currentTurn,
+      reason: 'team_eliminated',
+      final_state: {
+        blue_alive: blueAlive,
+        red_alive: redAlive,
+        host_gold: gameState.hostGold,
+        guest_gold: gameState.guestGold
+      }
+    });
+    
+    // 清理房间资源
+    console.log('[房间清理] 游戏结束，清理房间:', roomId);
+    rooms.delete(roomId);
+    battleEngines.delete(roomId);
+    
+    // 断开玩家连接映射
+    room.players.forEach(playerId => {
+      playerRooms.delete(playerId);
+    });
+    
+    return true;
+  }
+  
+  // 游戏继续
+  return false;
+}
+
 // 初始化游戏状态
 function initGameState(roomId) {
   const room = rooms.get(roomId);
@@ -106,7 +193,14 @@ function initGameState(roomId) {
     actionsPerTurn: 3,     // 每回合行动次数上限
     // 💰 金币系统（新增）
     hostGold: 10,         // 房主金币
-    guestGold: 10         // 客户端金币
+    guestGold: 10,        // 客户端金币
+    blueGold: 10,         // 蓝方金币（房主）
+    redGold: 10,          // 红方金币（客户端）
+    // 💰 阵亡补偿系统
+    blueDeathCount: 0,    // 蓝方阵亡数
+    redDeathCount: 0,     // 红方阵亡数
+    blueCompensationGiven: false,  // 蓝方是否已获得补偿
+    redCompensationGiven: false    // 红方是否已获得补偿
   };
   
   // 创建战斗引擎
@@ -389,6 +483,74 @@ wss.on('connection', (ws) => {
             });
           });
           
+          // 💰 击杀奖励广播（如果有的话）
+          if (result.kill_reward && result.kill_reward > 0) {
+            console.log('💰 [击杀奖励] 广播金币变化: 房主💰%d | 客户端💰%d', 
+              gameState.hostGold, gameState.guestGold);
+            room.players.forEach(playerId => {
+              sendToClient(playerId, {
+                type: 'gold_changed',
+                host_gold: gameState.hostGold,
+                guest_gold: gameState.guestGold,
+                income_data: { reason: 'kill_reward', amount: result.kill_reward }
+              });
+            });
+          }
+          
+          // 💰 阵亡补偿检测（死亡2张卡牌时触发）
+          if (result.target_dead) {
+            // 统计当前双方阵亡数
+            const blueAliveCount = gameState.blueCards.filter(c => c.health > 0).length;
+            const redAliveCount = gameState.redCards.filter(c => c.health > 0).length;
+            const blueDeaths = 3 - blueAliveCount;
+            const redDeaths = 3 - redAliveCount;
+            
+            // 蓝方阵亡补偿（死2张且未获得过补偿）
+            if (blueDeaths >= 2 && !gameState.blueCompensationGiven) {
+              const compensation = 30;
+              gameState.blueGold += compensation;
+              gameState.hostGold = gameState.blueGold;
+              gameState.blueCompensationGiven = true;
+              console.log('💰 [阵亡补偿] 蓝方/房主阵亡%d张，获得%d金币补偿！', blueDeaths, compensation);
+              
+              // 广播补偿金币
+              room.players.forEach(playerId => {
+                sendToClient(playerId, {
+                  type: 'gold_changed',
+                  host_gold: gameState.hostGold,
+                  guest_gold: gameState.guestGold,
+                  income_data: { reason: 'death_compensation', amount: compensation, team: 'blue' }
+                });
+              });
+            }
+            
+            // 红方阵亡补偿（死2张且未获得过补偿）
+            if (redDeaths >= 2 && !gameState.redCompensationGiven) {
+              const compensation = 30;
+              gameState.redGold += compensation;
+              gameState.guestGold = gameState.redGold;
+              gameState.redCompensationGiven = true;
+              console.log('💰 [阵亡补偿] 红方/客户端阵亡%d张，获得%d金币补偿！', redDeaths, compensation);
+              
+              // 广播补偿金币
+              room.players.forEach(playerId => {
+                sendToClient(playerId, {
+                  type: 'gold_changed',
+                  host_gold: gameState.hostGold,
+                  guest_gold: gameState.guestGold,
+                  income_data: { reason: 'death_compensation', amount: compensation, team: 'red' }
+                });
+              });
+            }
+            
+            // 🏆 检查游戏是否结束（服务器权威判定）
+            const gameOver = checkGameOver(roomId, room);
+            if (gameOver) {
+              console.log('⚠️ 游戏已结束，停止处理后续逻辑');
+              return;  // 游戏结束，直接返回，不再处理后续消息
+            }
+          }
+          
           // 🌟 如果大乔被动触发，需要广播技能点更新
           if (result.daqiao_passive_triggered && result.daqiao_passive_data) {
             const daqiaoData = result.daqiao_passive_data;
@@ -556,6 +718,20 @@ wss.on('connection', (ws) => {
                     guest_skill_points: gameState.guestSkillPoints
                   });
                 });
+                
+                // 🏆 检查技能是否导致游戏结束（伤害型技能可能击杀角色）
+                const hasDeaths = 
+                  (result.target_dead) || // 单体技能击杀
+                  (result.results && result.results.some(r => r.target_dead)) || // AOE技能击杀
+                  (result.damage_results && result.damage_results.some(r => r.target_dead)); // 其他伤害结果
+                
+                if (hasDeaths) {
+                  const gameOver = checkGameOver(roomId, room);
+                  if (gameOver) {
+                    console.log('⚠️ 技能导致游戏结束，停止处理后续逻辑');
+                    return;  // 游戏结束，直接返回
+                  }
+                }
               } else {
                 console.error('[技能失败]', result ? result.error : '未知错误');
                 
