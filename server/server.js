@@ -92,8 +92,8 @@ function checkGameOver(roomId, room) {
       final_state: {
         blue_alive: blueAlive,
         red_alive: redAlive,
-        host_gold: goldMgr.hostGold,  // 通过 GoldManager 访问
-        guest_gold: goldMgr.guestGold  // 通过 GoldManager 访问
+        host_gold: goldMgr ? goldMgr.hostGold : 0,  // 安全访问
+        guest_gold: goldMgr ? goldMgr.guestGold : 0  // 安全访问
       }
     });
     
@@ -129,8 +129,8 @@ function checkGameOver(roomId, room) {
       final_state: {
         blue_alive: blueAlive,
         red_alive: redAlive,
-        host_gold: goldMgr.hostGold,  // 通过 GoldManager 访问
-        guest_gold: goldMgr.guestGold  // 通过 GoldManager 访问
+        host_gold: goldMgr ? goldMgr.hostGold : 0,  // 安全访问
+        guest_gold: goldMgr ? goldMgr.guestGold : 0  // 安全访问
       }
     });
     
