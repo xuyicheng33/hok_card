@@ -204,6 +204,21 @@ func handle_server_message(message: Dictionary):
 			print("❌ 装备失败: %s" % error_msg)
 			connection_error.emit("装备失败: " + error_msg)
 		
+		"gold_changed":
+			var host_gold = message.get("host_gold", 0)
+			var guest_gold = message.get("guest_gold", 0)
+			var income_data = message.get("income_data", {})
+			print("💰 收到金币变化: 房主💰%d | 客户端💰%d" % [host_gold, guest_gold])
+			
+			# 转发给BattleManager处理（通过turn_changed信号）
+			var gold_update = {
+				"host_gold": host_gold,
+				"guest_gold": guest_gold,
+				"gold_income": income_data,
+				"is_gold_only": true  # 标记这只是金币更新
+			}
+			turn_changed.emit(gold_update)
+		
 		"error":
 			var error_msg = message.get("message", "未知错误")
 			print("服务器错误: %s" % error_msg)

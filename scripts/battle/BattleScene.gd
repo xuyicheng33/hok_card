@@ -2810,11 +2810,20 @@ func _show_equipment_selection_panel(equipment_options: Array):
 	
 	# 标题
 	var title = Label.new()
-	title.text = "选择一个装备"
+	title.text = "选择一个装备（已花费15金币）"
 	title.add_theme_font_override("font", chinese_font)
 	title.add_theme_font_size_override("font_size", 24)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(title)
+	
+	# 提示文字
+	var hint = Label.new()
+	hint.text = "💰 请选择一个装备，无法取消"
+	hint.add_theme_font_override("font", chinese_font)
+	hint.add_theme_font_size_override("font_size", 16)
+	hint.add_theme_color_override("font_color", Color(1.0, 0.84, 0.0))  # 金色
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(hint)
 	
 	# 装备选项容器
 	var equipment_container = HBoxContainer.new()

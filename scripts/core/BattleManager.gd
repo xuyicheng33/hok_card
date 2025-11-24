@@ -1057,6 +1057,12 @@ func _on_server_turn_changed(turn_data: Dictionary):
 		# 发送金币变化信号
 		gold_changed.emit(player_gold, enemy_gold, gold_income_data)
 	
+	# 💰 如果只是金币更新，不同步其他数据
+	var is_gold_only = turn_data.get("is_gold_only", false)
+	if is_gold_only:
+		print("✅ 金币更新完成（不同步其他数据）")
+		return
+	
 	# ⚠️ 如果只是技能点更新，不同步行动点！
 	if is_skill_points_only:
 		print("✅ 技能点更新完成（不同步行动点，不切换回合）")
