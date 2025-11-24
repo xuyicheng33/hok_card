@@ -35,6 +35,9 @@ var enemy_skill_points_label: Label
 var player_actions_label: Label
 var enemy_actions_label: Label
 
+# 💰 金币显示组件（新增）
+var gold_info_label: Label
+
 # 战斗状态
 var player_entities: Array = []
 var enemy_entities: Array = []
@@ -266,6 +269,10 @@ func get_node_references():
 	# 🎯 连接行动点变化信号
 	if BattleManager and not BattleManager.actions_changed.is_connected(_on_actions_changed):
 		BattleManager.actions_changed.connect(_on_actions_changed)
+	
+	# 💰 连接金币变化信号
+	if BattleManager and not BattleManager.gold_changed.is_connected(_on_gold_changed):
+		BattleManager.gold_changed.connect(_on_gold_changed)
 	
 	# 连接被动技能触发信号
 	if BattleManager and not BattleManager.passive_skill_triggered.is_connected(_on_passive_skill_triggered):
@@ -524,6 +531,15 @@ func create_battle_area_content():
 	enemy_actions_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	enemy_actions_label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.4))  # 橙色
 	skill_points_container.add_child(enemy_actions_label)
+	
+	# 💰 金币显示（新增）
+	gold_info_label = Label.new()
+	gold_info_label.text = "💰 我方: 10 | 敌方: 10"
+	gold_info_label.add_theme_font_override("font", chinese_font)
+	gold_info_label.add_theme_font_size_override("font_size", 16)
+	gold_info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	gold_info_label.add_theme_color_override("font_color", Color(1.0, 0.84, 0.0))  # 金色
+	skill_points_container.add_child(gold_info_label)
 	
 	# 战斗状态显示
 	battle_status_label = Label.new()
@@ -2520,6 +2536,26 @@ func _on_actions_changed(player_actions: int, enemy_actions: int):
 		print("  → 敌方标签更新: \"%s\" → \"%s\"" % [old_text, enemy_actions_label.text])
 	else:
 		print("  ⚠️ 敌方行动点标签无效！")
+
+## 💰 金币变化处理（新增）
+func _on_gold_changed(player_gold: int, enemy_gold: int, income_data: Dictionary):
+	print("💰 [UI更新] 金币变化: 我方💰%d, 敌方💰%d" % [player_gold, enemy_gold])
+	
+	# 如果有收入数据，打印详细信息
+	if not income_data.is_empty():
+		print("  收入详情: 基础+%d, 利息+%d, 总计+%d" % [
+			income_data.get("base", 0),
+			income_data.get("interest", 0),
+			income_data.get("total", 0)
+		])
+	
+	# 更新金币显示
+	if gold_info_label and is_instance_valid(gold_info_label):
+		var old_text = gold_info_label.text
+		gold_info_label.text = "💰 我方: %d | 敌方: %d" % [player_gold, enemy_gold]
+		print("  → 金币标签更新: \"%s\" → \"%s\"" % [old_text, gold_info_label.text])
+	else:
+		print("  ⚠️ 金币标签无效！")
 
 ## 更新技能按钮状态
 func update_skill_button_state():
