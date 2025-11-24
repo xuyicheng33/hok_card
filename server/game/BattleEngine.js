@@ -181,19 +181,15 @@ class BattleEngine {
       }
     }
     
-    // 💰 击杀奖励系统（在大乔被动之后判定，确保大乔复活时不发放奖励）
+    // 💰 击杀奖励系统（长期方案 - 只计算奖励，不修改金币）
+    // BattleEngine 只负责战斗计算，金币管理由 GoldManager 负责
     let killReward = 0;
+    let killerTeam = null;
     if (target.health <= 0 && !isDodged) {
       killReward = 20;
       const isAttackerBlue = this.state.blueCards.some(c => c.id === attackerId);
-      if (isAttackerBlue) {
-        this.state.blueGold = (this.state.blueGold || 0) + killReward;
-        this.state.hostGold = this.state.blueGold;
-      } else {
-        this.state.redGold = (this.state.redGold || 0) + killReward;
-        this.state.guestGold = this.state.redGold;
-      }
-      console.log(`   💰 击杀奖励: ${attacker.card_name} 获得 ${killReward} 金币!`);
+      killerTeam = isAttackerBlue ? 'blue' : 'red';
+      console.log(`   💰 击杀奖励: ${attacker.card_name} 应获得 ${killReward} 金币 (${killerTeam}方)`);
     }
     
     // 🎯 孙尚香被动技能：千金重弩（攻击命中时70%概率获得1技能点）
@@ -277,8 +273,9 @@ class BattleEngine {
       target_health: target.health,
       target_shield: target.shield || 0,  // 🛡️ 同步护盾值
       target_dead: target.health <= 0,
-      // 💰 击杀奖励
+      // 💰 击杀奖励（长期方案 - 只返回信息，不修改金币）
       kill_reward: killReward,
+      killer_team: killerTeam,  // 击杀者队伍（'blue' 或 'red'）
       // 🌟 大乔被动技能：宿命之海
       daqiao_passive_triggered: daqiaoPassiveTriggered,
       daqiao_passive_data: daqiaoPassiveData,
