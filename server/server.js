@@ -486,12 +486,12 @@ wss.on('connection', (ws) => {
           // 💰 击杀奖励广播（如果有的话）
           if (result.kill_reward && result.kill_reward > 0) {
             console.log('💰 [击杀奖励] 广播金币变化: 房主💰%d | 客户端💰%d', 
-              gameState.hostGold, gameState.guestGold);
+              room.gameState.hostGold, room.gameState.guestGold);
             room.players.forEach(playerId => {
               sendToClient(playerId, {
                 type: 'gold_changed',
-                host_gold: gameState.hostGold,
-                guest_gold: gameState.guestGold,
+                host_gold: room.gameState.hostGold,
+                guest_gold: room.gameState.guestGold,
                 income_data: { reason: 'kill_reward', amount: result.kill_reward }
               });
             });
@@ -500,44 +500,44 @@ wss.on('connection', (ws) => {
           // 💰 阵亡补偿检测（死亡2张卡牌时触发）
           if (result.target_dead) {
             // 统计当前双方阵亡数
-            const blueAliveCount = gameState.blueCards.filter(c => c.health > 0).length;
-            const redAliveCount = gameState.redCards.filter(c => c.health > 0).length;
+            const blueAliveCount = room.gameState.blueCards.filter(c => c.health > 0).length;
+            const redAliveCount = room.gameState.redCards.filter(c => c.health > 0).length;
             const blueDeaths = 3 - blueAliveCount;
             const redDeaths = 3 - redAliveCount;
             
             // 蓝方阵亡补偿（死2张且未获得过补偿）
-            if (blueDeaths >= 2 && !gameState.blueCompensationGiven) {
+            if (blueDeaths >= 2 && !room.gameState.blueCompensationGiven) {
               const compensation = 30;
-              gameState.blueGold += compensation;
-              gameState.hostGold = gameState.blueGold;
-              gameState.blueCompensationGiven = true;
+              room.gameState.blueGold += compensation;
+              room.gameState.hostGold = room.gameState.blueGold;
+              room.gameState.blueCompensationGiven = true;
               console.log('💰 [阵亡补偿] 蓝方/房主阵亡%d张，获得%d金币补偿！', blueDeaths, compensation);
               
               // 广播补偿金币
               room.players.forEach(playerId => {
                 sendToClient(playerId, {
                   type: 'gold_changed',
-                  host_gold: gameState.hostGold,
-                  guest_gold: gameState.guestGold,
+                  host_gold: room.gameState.hostGold,
+                  guest_gold: room.gameState.guestGold,
                   income_data: { reason: 'death_compensation', amount: compensation, team: 'blue' }
                 });
               });
             }
             
             // 红方阵亡补偿（死2张且未获得过补偿）
-            if (redDeaths >= 2 && !gameState.redCompensationGiven) {
+            if (redDeaths >= 2 && !room.gameState.redCompensationGiven) {
               const compensation = 30;
-              gameState.redGold += compensation;
-              gameState.guestGold = gameState.redGold;
-              gameState.redCompensationGiven = true;
+              room.gameState.redGold += compensation;
+              room.gameState.guestGold = room.gameState.redGold;
+              room.gameState.redCompensationGiven = true;
               console.log('💰 [阵亡补偿] 红方/客户端阵亡%d张，获得%d金币补偿！', redDeaths, compensation);
               
               // 广播补偿金币
               room.players.forEach(playerId => {
                 sendToClient(playerId, {
                   type: 'gold_changed',
-                  host_gold: gameState.hostGold,
-                  guest_gold: gameState.guestGold,
+                  host_gold: room.gameState.hostGold,
+                  guest_gold: room.gameState.guestGold,
                   income_data: { reason: 'death_compensation', amount: compensation, team: 'red' }
                 });
               });
