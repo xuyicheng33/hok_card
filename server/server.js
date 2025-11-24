@@ -485,8 +485,12 @@ wss.on('connection', (ws) => {
           
           // 💰 击杀奖励广播（如果有的话）
           if (result.kill_reward && result.kill_reward > 0) {
+            // 确保 blueGold/redGold 与 hostGold/guestGold 同步
+            room.gameState.hostGold = room.gameState.blueGold;
+            room.gameState.guestGold = room.gameState.redGold;
             console.log('💰 [击杀奖励] 广播金币变化: 房主💰%d | 客户端💰%d', 
               room.gameState.hostGold, room.gameState.guestGold);
+            console.log('   (blueGold:%d, redGold:%d)', room.gameState.blueGold, room.gameState.redGold);
             room.players.forEach(playerId => {
               sendToClient(playerId, {
                 type: 'gold_changed',
@@ -508,10 +512,14 @@ wss.on('connection', (ws) => {
             // 蓝方阵亡补偿（死2张且未获得过补偿）
             if (blueDeaths >= 2 && !room.gameState.blueCompensationGiven) {
               const compensation = 30;
+              const oldGold = room.gameState.blueGold;
               room.gameState.blueGold += compensation;
               room.gameState.hostGold = room.gameState.blueGold;
               room.gameState.blueCompensationGiven = true;
               console.log('💰 [阵亡补偿] 蓝方/房主阵亡%d张，获得%d金币补偿！', blueDeaths, compensation);
+              console.log('   房主金币: %d + %d = %d', oldGold, compensation, room.gameState.hostGold);
+              console.log('💰 [阵亡补偿] 广播金币变化: 房主💰%d | 客户端💰%d', 
+                room.gameState.hostGold, room.gameState.guestGold);
               
               // 广播补偿金币
               room.players.forEach(playerId => {
@@ -527,10 +535,14 @@ wss.on('connection', (ws) => {
             // 红方阵亡补偿（死2张且未获得过补偿）
             if (redDeaths >= 2 && !room.gameState.redCompensationGiven) {
               const compensation = 30;
+              const oldGold = room.gameState.redGold;
               room.gameState.redGold += compensation;
               room.gameState.guestGold = room.gameState.redGold;
               room.gameState.redCompensationGiven = true;
               console.log('💰 [阵亡补偿] 红方/客户端阵亡%d张，获得%d金币补偿！', redDeaths, compensation);
+              console.log('   客户端金币: %d + %d = %d', oldGold, compensation, room.gameState.guestGold);
+              console.log('💰 [阵亡补偿] 广播金币变化: 房主💰%d | 客户端💰%d', 
+                room.gameState.hostGold, room.gameState.guestGold);
               
               // 广播补偿金币
               room.players.forEach(playerId => {
@@ -767,15 +779,18 @@ wss.on('connection', (ws) => {
             return;
           }
           
-          // 扣除金币
+          // 扣除金币（同时更新 blueGold/redGold 和 hostGold/guestGold）
           const oldGold = playerGold;
           if (isHost) {
             gameState.hostGold -= equipmentCost;
+            gameState.blueGold = gameState.hostGold; // 🔧 同步 blueGold
           } else {
             gameState.guestGold -= equipmentCost;
+            gameState.redGold = gameState.guestGold; // 🔧 同步 redGold
           }
           const newGold = isHost ? gameState.hostGold : gameState.guestGold;
           console.log('✅ 扣除金币: %d → %d (-%d)', oldGold, newGold, equipmentCost);
+          console.log('   (blueGold:%d, redGold:%d)', gameState.blueGold, gameState.redGold);
           
           // 抽取3个随机装备
           const drawnEquipment = equipmentDB.drawRandomEquipment(EquipmentTier.BASIC, 3);
@@ -959,6 +974,7 @@ wss.on('connection', (ws) => {
             // 房主回合开始，结算房主金币
             goldIncome = calculateGoldIncome(gameState.hostGold);
             gameState.hostGold = goldIncome.newGold;
+            gameState.blueGold = gameState.hostGold; // 🔧 同步 blueGold
             console.log('💰 [金币结算] 房主/蓝方');
             console.log('   当前金币: %d → %d', goldIncome.newGold - goldIncome.total, goldIncome.newGold);
             console.log('   基础收入: +%d, 利息: +%d (总收入: +%d)', 
@@ -967,6 +983,7 @@ wss.on('connection', (ws) => {
             // 客户端回合开始，结算客户端金币
             goldIncome = calculateGoldIncome(gameState.guestGold);
             gameState.guestGold = goldIncome.newGold;
+            gameState.redGold = gameState.guestGold; // 🔧 同步 redGold
             console.log('💰 [金币结算] 客户端/红方');
             console.log('   当前金币: %d → %d', goldIncome.newGold - goldIncome.total, goldIncome.newGold);
             console.log('   基础收入: +%d, 利息: +%d (总收入: +%d)', 
