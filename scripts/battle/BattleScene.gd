@@ -1863,14 +1863,9 @@ func _on_passive_skill_triggered(card: Card, skill_name: String, effect: String,
 	if message_system:
 		match skill_name:
 			"欢歌":
-				# 🔧 朵莉亚的被动技能处理 - 使用服务器传来的真实数据
-				var heal_details = {
-					"heal_amount": details.get("heal_amount", 0),
-					"overflow_shield": details.get("overflow_shield", 0)
-				}
-				
-				# 直接传递details给add_passive_skill，让它根据数据判断显示内容
-				message_system.add_passive_skill(card.card_name, skill_name, effect, heal_details)
+				# 🔧 朵莉亚的被动技能处理 - 直接传递服务器的完整数据
+				# 服务器发送的字段：self_heal, overflow_shield, ally_name, ally_heal
+				message_system.add_passive_skill(card.card_name, skill_name, effect, details)
 			"狩猎":
 				details = {
 					"damage_bonus": 0.3

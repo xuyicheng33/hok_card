@@ -409,22 +409,29 @@ func add_passive_skill(character: String, skill_name: String, effect: String, de
 	# 对朵莉亚的被动技能进行特殊处理，确保技能名称和效果正确
 	var display_effect = effect
 	if character == "朵莉亚" and skill_name == "欢歌":
-		# 🔧 根据服务器数据判断显示内容
-		var heal_amount = details.get("heal_amount", 0)
+		# 🔧 根据服务器数据判断显示内容（服务器发送：self_heal, overflow_shield, ally_name, ally_heal）
+		var self_heal = details.get("self_heal", 0)
 		var overflow_shield = details.get("overflow_shield", 0)
+		var ally_name = details.get("ally_name", "")
+		var ally_heal = details.get("ally_heal", 0)
 		
-		if heal_amount > 0 and overflow_shield > 0:
-			# 恢复生命 + 溢出护盾
-			display_effect = "恢复%d点生命值，溢出%d点转为护盾" % [heal_amount, overflow_shield]
-		elif heal_amount == 0 and overflow_shield > 0:
-			# 满血，全部转护盾
-			display_effect = "生命值已满，获得%d点护盾" % overflow_shield
-		elif heal_amount > 0 and overflow_shield == 0:
-			# 只恢复生命
-			display_effect = "恢复%d点生命值" % heal_amount
+		var msg_parts = []
+		
+		# 朵莉亚自己的恢复
+		if self_heal > 0:
+			msg_parts.append("自己+%d" % self_heal)
+		if overflow_shield > 0:
+			msg_parts.append("护盾+%d" % overflow_shield)
+		
+		# 队友的恢复
+		if ally_heal > 0 and ally_name != "":
+			msg_parts.append("%s+%d" % [ally_name, ally_heal])
+		
+		# 组合消息
+		if msg_parts.size() > 0:
+			display_effect = ", ".join(msg_parts)
 		else:
-			# 满血且无溢出
-			display_effect = "生命值已满"
+			display_effect = "无效果"
 	elif character == "澜" and skill_name == "狩猎":
 		display_effect = "目标生命值低于50%，增伤+30%"
 	elif character == "孙尚香" and skill_name == "千金重弩":
