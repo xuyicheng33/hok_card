@@ -38,6 +38,8 @@ signal game_started(game_data: Dictionary)
 signal opponent_action_received(action_data: Dictionary)
 signal opponent_disconnected()
 signal turn_changed(turn_data: Dictionary)  # 🎯 服务器权威回合变化
+signal equipment_drawn(equipment_options: Array)  # 💰 装备抽取结果
+signal item_equipped(equip_data: Dictionary)  # 🎒 装备成功
 
 func _ready():
 	print("网络管理器初始化...")
@@ -178,6 +180,29 @@ func handle_server_message(message: Dictionary):
 			var error_msg = message.get("error", "技能释放失败")
 			print("❌ 技能失败: %s" % error_msg)
 			connection_error.emit("技能失败: " + error_msg)
+		
+		"equipment_drawn":
+			var equipment_options = message.get("equipment_options", [])
+			var remaining_gold = message.get("remaining_gold", 0)
+			print("💰 装备抽取结果: %d个装备, 剩余金币:%d" % [equipment_options.size(), remaining_gold])
+			equipment_drawn.emit(equipment_options)
+		
+		"item_equipped":
+			var card_id = message.get("card_id", "")
+			var equipment = message.get("equipment", {})
+			var card_stats = message.get("card_stats", {})
+			print("🎒 装备成功: 卡牍%s 装备%s" % [card_id, equipment.get("name", "")])
+			item_equipped.emit(message)
+		
+		"buy_equipment_failed":
+			var error_msg = message.get("error", "购买装备失败")
+			print("❌ 购买装备失败: %s" % error_msg)
+			connection_error.emit("购买装备失败: " + error_msg)
+		
+		"equip_failed":
+			var error_msg = message.get("error", "装备失败")
+			print("❌ 装备失败: %s" % error_msg)
+			connection_error.emit("装备失败: " + error_msg)
 		
 		"error":
 			var error_msg = message.get("message", "未知错误")

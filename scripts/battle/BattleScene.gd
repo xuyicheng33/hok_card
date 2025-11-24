@@ -21,6 +21,7 @@ var turn_info_label: Label
 var end_turn_button: Button
 var use_skill_button: Button
 var cancel_skill_button: Button  # 取消技能按钮引用
+var buy_equipment_button: Button  # 购买装备按钮
 var back_to_menu_button: Button
 var detail_button: Button  # 新增详情按钮引用
 var message_system  # 消息系统
@@ -590,6 +591,13 @@ func create_battle_area_content():
 	cancel_skill_button.name = "CancelSkillButton"
 	left_buttons.add_child(cancel_skill_button)
 	
+	# 💰 购买装备按钮
+	buy_equipment_button = Button.new()
+	buy_equipment_button.text = "💰购买装备(15)"
+	buy_equipment_button.custom_minimum_size = Vector2(140, 48)
+	buy_equipment_button.add_theme_color_override("font_color", Color(1.0, 0.84, 0.0))  # 金色
+	left_buttons.add_child(buy_equipment_button)
+	
 	# 右侧按钮组
 	var right_buttons = HBoxContainer.new()
 	right_buttons.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -616,6 +624,10 @@ func create_battle_area_content():
 	# 连接取消技能按钮信号
 	if cancel_skill_button:
 		cancel_skill_button.pressed.connect(_on_cancel_skill_pressed)
+	
+	# 连接购买装备按钮信号
+	if buy_equipment_button:
+		buy_equipment_button.pressed.connect(_on_buy_equipment_pressed)
 
 func create_message_area_content():
 	# 消息区域标题
@@ -664,6 +676,14 @@ func connect_battle_manager_signals():
 	# 将BattleScene中创建的message_system赋值给BattleManager
 	if message_system and BattleManager:
 		BattleManager.message_system = message_system
+	
+	# 🎒 连接装备系统信号
+	if NetworkManager:
+		if not NetworkManager.equipment_drawn.is_connected(_on_equipment_drawn):
+			NetworkManager.equipment_drawn.connect(_on_equipment_drawn)
+		if not NetworkManager.item_equipped.is_connected(_on_item_equipped):
+			NetworkManager.item_equipped.connect(_on_item_equipped)
+		print("装备系统信号连接完成")
 	
 	print("战斗管理器信号连接完成")
 
@@ -2738,3 +2758,288 @@ func _on_detail_button_pressed():
 	
 	# 设置所有卡牌详情
 	popup.setup_details(player_cards, enemy_cards)
+
+## 💰 购买装备按钮点击
+func _on_buy_equipment_pressed():
+	print("💰 [UI] 购买装备按钮被点击")
+	
+	# 🌐 在线模式：检查是否是我的回合
+	if BattleManager.is_online_mode:
+		var current_turn_num = BattleManager.current_turn
+		var is_host_turn = (current_turn_num % 2 == 1)
+		var is_my_turn = (NetworkManager.is_host == is_host_turn)
+		
+		if not is_my_turn:
+			print("⚠️ 不是你的回合，无法购买装备")
+			if message_system:
+				message_system.add_message("system", "不是你的回合")
+			return
+		
+		# 发送购买请求到服务器
+		print("📤 发送buy_equipment请求到服务器")
+		NetworkManager.send_game_action("buy_equipment", {})
+	else:
+		# 本地模式（暂不实现）
+		print("⚠️ 装备系统仅支持在线模式")
+		if message_system:
+			message_system.add_message("system", "装备系统仅支持在线模式")
+
+## 📦 显示装备选择面板（3选1）
+func _show_equipment_selection_panel(equipment_options: Array):
+	print("📦 [UI] 显示装备选择面板，装备数量:", equipment_options.size())
+	
+	# 创建半透明背景遮罩
+	var overlay = ColorRect.new()
+	overlay.color = Color(0, 0, 0, 0.7)
+	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	overlay.name = "EquipmentOverlay"
+	add_child(overlay)
+	
+	# 创建选择面板
+	var panel = PanelContainer.new()
+	panel.custom_minimum_size = Vector2(800, 400)
+	panel.position = Vector2(
+		(get_viewport().get_visible_rect().size.x - 800) / 2,
+		(get_viewport().get_visible_rect().size.y - 400) / 2
+	)
+	overlay.add_child(panel)
+	
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 20)
+	panel.add_child(vbox)
+	
+	# 标题
+	var title = Label.new()
+	title.text = "选择一个装备"
+	title.add_theme_font_override("font", chinese_font)
+	title.add_theme_font_size_override("font_size", 24)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+	
+	# 装备选项容器
+	var equipment_container = HBoxContainer.new()
+	equipment_container.alignment = BoxContainer.ALIGNMENT_CENTER
+	equipment_container.add_theme_constant_override("separation", 30)
+	vbox.add_child(equipment_container)
+	
+	# 为每个装备创建按钮
+	for i in range(equipment_options.size()):
+		var equip = equipment_options[i]
+		var equip_button = create_equipment_option_button(equip, i)
+		equip_button.pressed.connect(_on_equipment_selected.bind(equip, overlay))
+		equipment_container.add_child(equip_button)
+	
+	print("✅ 装备选择面板已显示")
+
+## 创建装备选项按钮
+func create_equipment_option_button(equipment: Dictionary, index: int) -> Button:
+	var button = Button.new()
+	button.custom_minimum_size = Vector2(200, 300)
+	
+	# 创建按钮内容
+	var vbox = VBoxContainer.new()
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	button.add_child(vbox)
+	
+	# 装备图标（使用TextureRect显示）
+	var icon_path = "res://assets/equipment/%s/%s" % [
+		"攻击" if equipment.get("category") == "attack" else "防御",
+		equipment.get("icon", "")
+	]
+	
+	var icon = TextureRect.new()
+	icon.custom_minimum_size = Vector2(128, 128)
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	
+	# 尝试加载图标
+	if ResourceLoader.exists(icon_path):
+		icon.texture = load(icon_path)
+	else:
+		print("⚠️ 装备图标未找到:", icon_path)
+	
+	vbox.add_child(icon)
+	
+	# 装备名称
+	var name_label = Label.new()
+	name_label.text = equipment.get("name", "未知装备")
+	name_label.add_theme_font_override("font", chinese_font)
+	name_label.add_theme_font_size_override("font_size", 18)
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(name_label)
+	
+	# 装备描述
+	var desc_label = Label.new()
+	desc_label.text = equipment.get("description", "")
+	desc_label.add_theme_font_override("font", chinese_font)
+	desc_label.add_theme_font_size_override("font_size", 14)
+	desc_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	desc_label.custom_minimum_size.x = 180
+	vbox.add_child(desc_label)
+	
+	return button
+
+## 📦 装备被选中
+func _on_equipment_selected(equipment: Dictionary, overlay: Control):
+	print("📦 [UI] 装备被选中:", equipment.get("name"))
+	
+	# 关闭选择面板
+	overlay.queue_free()
+	
+	# 显示英雄选择界面
+	_show_hero_selection_for_equipment(equipment)
+
+## 🦸 显示英雄选择界面（选择给哪个英雄装备）
+func _show_hero_selection_for_equipment(equipment: Dictionary):
+	print("🦸 [UI] 显示英雄选择界面")
+	
+	# 创建半透明背景遮罩
+	var overlay = ColorRect.new()
+	overlay.color = Color(0, 0, 0, 0.7)
+	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	overlay.name = "HeroSelectionOverlay"
+	add_child(overlay)
+	
+	# 创建选择面板
+	var panel = PanelContainer.new()
+	panel.custom_minimum_size = Vector2(800, 300)
+	panel.position = Vector2(
+		(get_viewport().get_visible_rect().size.x - 800) / 2,
+		(get_viewport().get_visible_rect().size.y - 300) / 2
+	)
+	overlay.add_child(panel)
+	
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 20)
+	panel.add_child(vbox)
+	
+	# 标题
+	var title = Label.new()
+	title.text = "选择要装备的英雄"
+	title.add_theme_font_override("font", chinese_font)
+	title.add_theme_font_size_override("font_size", 24)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+	
+	# 英雄选项容器
+	var hero_container = HBoxContainer.new()
+	hero_container.alignment = BoxContainer.ALIGNMENT_CENTER
+	hero_container.add_theme_constant_override("separation", 20)
+	vbox.add_child(hero_container)
+	
+	# 获取我方英雄卡牌
+	var my_cards = []
+	if NetworkManager.is_host:
+		my_cards = BattleManager.blue_team_cards
+	else:
+		my_cards = BattleManager.red_team_cards
+	
+	# 为每个英雄创建按钮
+	for card in my_cards:
+		if card and card.health > 0:  # 只显示存活的英雄
+			var hero_button = create_hero_option_button(card)
+			hero_button.pressed.connect(_on_hero_selected_for_equipment.bind(equipment, card, overlay))
+			hero_container.add_child(hero_button)
+	
+	# 取消按钮
+	var cancel_button = Button.new()
+	cancel_button.text = "取消"
+	cancel_button.custom_minimum_size = Vector2(120, 48)
+	cancel_button.pressed.connect(func(): overlay.queue_free())
+	vbox.add_child(cancel_button)
+	
+	print("✅ 英雄选择界面已显示")
+
+## 创建英雄选项按钮
+func create_hero_option_button(card) -> Button:
+	var button = Button.new()
+	button.custom_minimum_size = Vector2(150, 180)
+	
+	var vbox = VBoxContainer.new()
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	button.add_child(vbox)
+	
+	# 英雄名称
+	var name_label = Label.new()
+	name_label.text = card.card_name
+	name_label.add_theme_font_override("font", chinese_font)
+	name_label.add_theme_font_size_override("font_size", 18)
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(name_label)
+	
+	# 英雄状态
+	var status_label = Label.new()
+	status_label.text = "HP: %d/%d\n装备: %d/2" % [card.health, card.max_health, card.equipment.size() if card.equipment else 0]
+	status_label.add_theme_font_override("font", chinese_font)
+	status_label.add_theme_font_size_override("font_size", 14)
+	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(status_label)
+	
+	# 如果装备已满，禁用按钮
+	if card.equipment and card.equipment.size() >= 2:
+		button.disabled = true
+		button.modulate = Color(0.5, 0.5, 0.5)
+	
+	return button
+
+## 🎒 英雄被选中装备
+func _on_hero_selected_for_equipment(equipment: Dictionary, card, overlay: Control):
+	print("🎒 [UI] 英雄被选中:", card.card_name, "装备:", equipment.get("name"))
+	
+	# 关闭选择面板
+	overlay.queue_free()
+	
+	# 发送装备请求到服务器
+	if BattleManager.is_online_mode:
+		print("📤 发送equip_item请求到服务器")
+		NetworkManager.send_game_action("equip_item", {
+			"equipment_id": equipment.get("id"),
+			"card_id": card.id
+		})
+	
+	if message_system:
+		message_system.add_message("system", "%s装备了%s" % [card.card_name, equipment.get("name")])
+
+## 📦 处理装备抽取结果
+func _on_equipment_drawn(equipment_options: Array):
+	print("📦 [信号] 收到装备抽取结果，装备数量:", equipment_options.size())
+	
+	# 显示装备选择面板
+	call_deferred("_show_equipment_selection_panel", equipment_options)
+
+## 🎒 处理装备成功
+func _on_item_equipped(equip_data: Dictionary):
+	print("🎒 [信号] 收到装备成功通知")
+	
+	var card_id = equip_data.get("card_id", "")
+	var equipment = equip_data.get("equipment", {})
+	var card_stats = equip_data.get("card_stats", {})
+	
+	# 更新本地卡牌数据
+	var card = BattleManager._find_card_by_id(card_id)
+	if card:
+		# 添加装备到卡牌
+		if not card.equipment:
+			card.equipment = []
+		card.equipment.append(equipment)
+		
+		# 更新卡牌属性
+		card.attack = card_stats.get("attack", card.attack)
+		card.max_health = card_stats.get("max_health", card.max_health)
+		card.health = card_stats.get("health", card.health)
+		card.armor = card_stats.get("armor", card.armor)
+		card.crit_rate = card_stats.get("crit_rate", card.crit_rate)
+		card.crit_damage = card_stats.get("crit_damage", card.crit_damage)
+		card.dodge_rate = card_stats.get("dodge_rate", card.dodge_rate)
+		
+		print("✅ 卡牌%s装备已更新，当前装备数:%d" % [card.card_name, card.equipment.size()])
+		
+		# 更新UI显示
+		call_deferred("update_cards_display")
+		
+		# 显示消息
+		if message_system:
+			message_system.add_message("system", "%s装备了%s" % [card.card_name, equipment.get("name", "")])
+	else:
+		print("⚠️ 未找到卡牌:", card_id)
