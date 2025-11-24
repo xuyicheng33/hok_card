@@ -1479,13 +1479,13 @@ func _on_card_clicked(entity):
 			# 检查卡牌是否存活
 			if card.is_dead():
 				if message_system:
-					message_system.add_message("system", "不能给已阵亡的英雄装备")
+					message_system.add_message("不能给已阵亡的英雄装备", "system")
 				return
 			
 			# 检查装备数量限制
 			if card.equipment and card.equipment.size() >= 2:
 				if message_system:
-					message_system.add_message("system", "%s装备已满（2/2）" % card.card_name)
+					message_system.add_message("%s装备已满（2/2）" % card.card_name, "system")
 				return
 			
 			# 发送装备请求到服务器
@@ -1497,7 +1497,7 @@ func _on_card_clicked(entity):
 			})
 			
 			if message_system:
-				message_system.add_message("system", "正在为%s装备%s..." % [card.card_name, equipment_name])
+				message_system.add_message("正在为%s装备%s..." % [card.card_name, equipment_name], "system")
 			
 			# 重置装备选择模式
 			is_selecting_equipment_target = false
@@ -1505,7 +1505,7 @@ func _on_card_clicked(entity):
 		else:
 			# 点击了敌方卡牌
 			if message_system:
-				message_system.add_message("system", "请点击己方英雄卡牌")
+				message_system.add_message("请点击己方英雄卡牌", "system")
 		return
 	
 	# 🌐 在线模式：检查是否是我的回合
@@ -2815,7 +2815,7 @@ func _on_buy_equipment_pressed():
 		if not is_my_turn:
 			print("⚠️ 不是你的回合，无法购买装备")
 			if message_system:
-				message_system.add_message("system", "不是你的回合")
+				message_system.add_message("不是你的回合", "system")
 			return
 		
 		# 发送购买请求到服务器
@@ -2825,7 +2825,7 @@ func _on_buy_equipment_pressed():
 		# 本地模式（暂不实现）
 		print("⚠️ 装备系统仅支持在线模式")
 		if message_system:
-			message_system.add_message("system", "装备系统仅支持在线模式")
+			message_system.add_message("装备系统仅支持在线模式", "system")
 
 ## 📦 显示装备选择面板（3选1）
 func _show_equipment_selection_panel(equipment_options: Array):
@@ -2945,7 +2945,7 @@ func _on_equipment_selected(equipment: Dictionary, overlay: Control):
 	
 	# 显示提示信息
 	if message_system:
-		message_system.add_message("system", "请点击要装备的己方英雄卡牌")
+		message_system.add_message("请点击要装备的己方英雄卡牌", "system")
 	
 	print("🎒 进入装备选择模式，请点击己方卡牌")
 
@@ -3063,7 +3063,7 @@ func _on_hero_selected_for_equipment(equipment: Dictionary, card, overlay: Contr
 		})
 	
 	if message_system:
-		message_system.add_message("system", "%s装备了%s" % [card.card_name, equipment.get("name")])
+		message_system.add_message("%s装备了%s" % [card.card_name, equipment.get("name")], "system")
 
 ## 📦 处理装备抽取结果
 func _on_equipment_drawn(equipment_options: Array):
