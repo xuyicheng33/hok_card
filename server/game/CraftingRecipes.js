@@ -30,6 +30,7 @@ class CraftingRecipes {
         tier: 'advanced',
         category: 'attack',
         description: '增加50点攻击力',
+        icon: '铁剑.png',  // 使用铁剑图标
         effects: [
           { type: 'attack', value: 50 }
         ],
@@ -45,6 +46,7 @@ class CraftingRecipes {
         tier: 'advanced',
         category: 'attack',
         description: '增加15%暴击率和5%伤害增幅',
+        icon: '搏击拳套.png',  // 使用搏击拳套图标
         effects: [
           { type: 'crit_rate', value: 0.15 },
           { type: 'damage_amplify', value: 0.05 }
@@ -61,6 +63,7 @@ class CraftingRecipes {
         tier: 'advanced',
         category: 'attack',
         description: '增加25点攻击力和7%伤害增幅',
+        icon: '匕首.png',  // 使用匕首图标
         effects: [
           { type: 'attack', value: 25 },
           { type: 'damage_amplify', value: 0.07 }
@@ -77,6 +80,7 @@ class CraftingRecipes {
         tier: 'advanced',
         category: 'attack',
         description: '增加13%暴击率和10%暴击效果',
+        icon: '雷鸣刃.png',  // 使用雷鸣刃图标
         effects: [
           { type: 'crit_rate', value: 0.13 },
           { type: 'crit_damage', value: 0.10 }
@@ -93,6 +97,7 @@ class CraftingRecipes {
         tier: 'advanced',
         category: 'attack',
         description: '增加25点攻击力和250点最大生命值',
+        icon: '红玛瑙.png',  // 使用红玛瑙图标
         effects: [
           { type: 'attack', value: 25 },
           { type: 'max_health', value: 250 }
@@ -111,6 +116,7 @@ class CraftingRecipes {
         tier: 'advanced',
         category: 'defense',
         description: '增加500点最大生命值',
+        icon: '红玛瑙.png',  // 使用红玛瑙图标
         effects: [
           { type: 'max_health', value: 500 }
         ],
@@ -126,6 +132,7 @@ class CraftingRecipes {
         tier: 'advanced',
         category: 'defense',
         description: '增加25点攻击力和40点护甲',
+        icon: '布甲.png',  // 使用布甲图标
         effects: [
           { type: 'attack', value: 25 },
           { type: 'armor', value: 40 }
@@ -142,6 +149,7 @@ class CraftingRecipes {
         tier: 'advanced',
         category: 'defense',
         description: '增加300点最大生命值和40点护甲',
+        icon: '布甲.png',  // 使用布甲图标
         effects: [
           { type: 'max_health', value: 300 },
           { type: 'armor', value: 40 }
@@ -158,6 +166,7 @@ class CraftingRecipes {
         tier: 'advanced',
         category: 'defense',
         description: '每回合恢复50点生命值，增加400点最大生命值',
+        icon: '提神水晶.png',  // 使用提神水晶图标
         effects: [
           { type: 'heal_per_turn', value: 50 },
           { type: 'max_health', value: 400 }
