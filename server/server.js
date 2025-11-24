@@ -1030,19 +1030,35 @@ wss.on('connection', (ws) => {
             return;
           }
           
-          // 验证英雄拥有这些装备
+          // 验证英雄拥有这些装备（需要考虑同一装备可能有多个的情况）
           const heroEquipment = hero.equipment || [];
-          const hasMaterial1 = heroEquipment.some(e => e.id === material_ids[0]);
-          const hasMaterial2 = heroEquipment.some(e => e.id === material_ids[1]);
           
-          if (!hasMaterial1 || !hasMaterial2) {
-            console.error('[合成失败] 英雄未装备这些物品');
-            console.log('   英雄装备:', heroEquipment.map(e => e.id));
-            sendToClient(clientId, {
-              type: 'craft_failed',
-              error: '该英雄未装备这些物品'
-            });
-            return;
+          // 统计英雄拥有的每种装备数量
+          const equipmentCount = {};
+          for (const equip of heroEquipment) {
+            equipmentCount[equip.id] = (equipmentCount[equip.id] || 0) + 1;
+          }
+          
+          // 统计需要的每种材料数量
+          const requiredCount = {};
+          for (const materialId of material_ids) {
+            requiredCount[materialId] = (requiredCount[materialId] || 0) + 1;
+          }
+          
+          // 验证每种材料的数量是否足够
+          for (const materialId in requiredCount) {
+            const required = requiredCount[materialId];
+            const owned = equipmentCount[materialId] || 0;
+            if (owned < required) {
+              console.error('[合成失败] 英雄未装备足够的物品');
+              console.log('   需要 %s x%d, 拥有 x%d', materialId, required, owned);
+              console.log('   英雄装备:', heroEquipment.map(e => e.id));
+              sendToClient(clientId, {
+                type: 'craft_failed',
+                error: '该英雄未装备足够的材料'
+              });
+              return;
+            }
           }
           
           // 使用 GoldManager 扣除金币
@@ -1061,20 +1077,29 @@ wss.on('connection', (ws) => {
           console.log('✅ 扣除合成费用: %d → %d (-%d)', 
             deductResult.oldGold, deductResult.newGold, recipe.cost);
           
-          // 🔧 先移除材料装备的属性加成
-          const materialsToRemove = hero.equipment.filter(e => 
-            material_ids.includes(e.id)
-          );
-          
+          // 🔧 先移除材料装备的属性加成（精确移除指定数量）
           console.log('🔧 [移除材料装备效果]');
-          for (const material of materialsToRemove) {
-            equipmentDB.removeEquipmentEffects(hero, material);
+          
+          // 统计需要移除的每种装备数量
+          const toRemoveCount = {};
+          for (const materialId of material_ids) {
+            toRemoveCount[materialId] = (toRemoveCount[materialId] || 0) + 1;
           }
           
-          // 从装备列表中移除
-          hero.equipment = hero.equipment.filter(e => 
-            !material_ids.includes(e.id)
-          );
+          // 精确移除装备效果和装备本身
+          const newEquipment = [];
+          for (const equip of hero.equipment) {
+            if (toRemoveCount[equip.id] && toRemoveCount[equip.id] > 0) {
+              // 需要移除这个装备
+              equipmentDB.removeEquipmentEffects(hero, equip);
+              toRemoveCount[equip.id]--;
+              console.log('   移除: %s', equip.name);
+            } else {
+              // 保留这个装备
+              newEquipment.push(equip);
+            }
+          }
+          hero.equipment = newEquipment;
           
           // 创建合成的进阶装备
           const craftedEquipment = {
