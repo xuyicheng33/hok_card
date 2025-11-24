@@ -46,6 +46,10 @@ var selected_card = null
 var is_selecting_target: bool = false
 var is_using_skill: bool = false
 
+# 🎒 装备选择模式
+var is_selecting_equipment_target: bool = false  # 是否在选择装备目标
+var pending_equipment: Dictionary = {}  # 待装备的装备数据
+
 # 战斗模式支持
 var battle_mode: String = "2v2"  # 默认2v2模式
 var player_cards: Array = []  # 存储玩家方卡牌实体
@@ -1464,6 +1468,44 @@ func clear_battle_entities():
 ## 卡牌点击处理
 func _on_card_clicked(entity):
 	print("卡牌被点击: %s (is_player: %s)" % [entity.get_card().card_name, entity.is_player()])
+	
+	# 🎒 装备选择模式：点击己方卡牌进行装备
+	if is_selecting_equipment_target:
+		# 检查是否点击的是己方卡牌
+		if entity.is_player():
+			var card = entity.get_card()
+			
+			# 检查卡牌是否存活
+			if card.is_dead():
+				if message_system:
+					message_system.add_message("system", "不能给已阵亡的英雄装备")
+				return
+			
+			# 检查装备数量限制
+			if card.equipment and card.equipment.size() >= 2:
+				if message_system:
+					message_system.add_message("system", "%s装备已满（2/2）" % card.card_name)
+				return
+			
+			# 发送装备请求到服务器
+			var equipment_name = pending_equipment.get("name")
+			print("🎒 [UI] 选择英雄: %s 装备: %s" % [card.card_name, equipment_name])
+			NetworkManager.send_game_action("equip_item", {
+				"equipment_id": pending_equipment.get("id"),
+				"card_id": card.id
+			})
+			
+			if message_system:
+				message_system.add_message("system", "正在为%s装备%s..." % [card.card_name, equipment_name])
+			
+			# 重置装备选择模式
+			is_selecting_equipment_target = false
+			pending_equipment = {}
+		else:
+			# 点击了敌方卡牌
+			if message_system:
+				message_system.add_message("system", "请点击己方英雄卡牌")
+		return
 	
 	# 🌐 在线模式：检查是否是我的回合
 	if BattleManager.is_online_mode:
@@ -2896,8 +2938,15 @@ func _on_equipment_selected(equipment: Dictionary, overlay: Control):
 	# 关闭选择面板
 	overlay.queue_free()
 	
-	# 显示英雄选择界面
-	_show_hero_selection_for_equipment(equipment)
+	# 进入装备选择模式
+	is_selecting_equipment_target = true
+	pending_equipment = equipment
+	
+	# 显示提示信息
+	if message_system:
+		message_system.add_message("system", "请点击要装备的己方英雄卡牌")
+	
+	print("🎒 进入装备选择模式，请点击己方卡牌")
 
 ## 🦸 显示英雄选择界面（选择给哪个英雄装备）
 func _show_hero_selection_for_equipment(equipment: Dictionary):
