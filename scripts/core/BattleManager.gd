@@ -1902,11 +1902,15 @@ func _on_equipment_crafted(craft_data: Dictionary):
 		card_to_update.equipment = new_equipment_list
 		
 		print("✅ 已更新英雄 %s 的属性和装备" % card_to_update.card_name)
+		
+		# 🎨 更新UI显示（显示新装备图标）
+		if entity_card_map.has(card_to_update):
+			var card_entity = entity_card_map[card_to_update]
+			if card_entity and is_instance_valid(card_entity):
+				card_entity.update_display()
+				print("🎨 已更新 %s 的UI显示（装备图标已刷新）" % card_to_update.card_name)
 	else:
 		print("⚠️ 未找到ID为 %s 的英雄卡牌" % hero_id)
-	
-	# 通知UI更新（可以通过信号）
-	# TODO: 添加装备合成成功的UI反馈
 
 ## 🔨 处理装备合成失败
 func _on_craft_failed(error_message: String):
