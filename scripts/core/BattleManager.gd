@@ -1891,10 +1891,22 @@ func _on_equipment_crafted(craft_data: Dictionary):
 		if not card_to_update.equipment:
 			card_to_update.equipment = []
 		
-		# 移除材料装备
+		# 精确移除材料装备（统计需要移除的每种装备数量）
+		var to_remove_count = {}
+		for material_id in removed_materials:
+			if not to_remove_count.has(material_id):
+				to_remove_count[material_id] = 0
+			to_remove_count[material_id] += 1
+		
+		# 精确移除装备（避免误删多余装备）
 		var new_equipment_list = []
 		for equip in card_to_update.equipment:
-			if not removed_materials.has(equip.get("id", "")):
+			var equip_id = equip.get("id", "")
+			if to_remove_count.has(equip_id) and to_remove_count[equip_id] > 0:
+				# 需要移除这个装备
+				to_remove_count[equip_id] -= 1
+			else:
+				# 保留这个装备
 				new_equipment_list.append(equip)
 		
 		# 添加新装备
