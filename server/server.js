@@ -3,6 +3,7 @@ const http = require('http');
 const WebSocket = require('ws');
 const CardDatabase = require('./game/CardDatabase');
 const BattleEngine = require('./game/BattleEngine');
+const { equipmentDB, EquipmentTier } = require('./game/EquipmentDatabase');
 
 const app = express();
 const server = http.createServer(app);
@@ -564,6 +565,133 @@ wss.on('connection', (ws) => {
               }
             }
           }
+        } else if (data.action === 'buy_equipment') {
+          // 💰 购买装备（抽取3个随机装备）
+          const gameState = room.gameState;
+          const isHost = (clientId === room.host);
+          const playerGold = isHost ? gameState.hostGold : gameState.guestGold;
+          const equipmentCost = 15; // 固定15金币
+          
+          console.log('[装备购买] 玩家:', isHost ? '房主' : '客户端', '金币:', playerGold);
+          
+          // 检查金币是否足够
+          if (playerGold < equipmentCost) {
+            console.error('[装备购买失败] 金币不足:', playerGold, '<', equipmentCost);
+            sendToClient(clientId, {
+              type: 'buy_equipment_failed',
+              error: `金币不足 (需要${equipmentCost}金币，当前${playerGold}金币)`
+            });
+            return;
+          }
+          
+          // 扣除金币
+          if (isHost) {
+            gameState.hostGold -= equipmentCost;
+          } else {
+            gameState.guestGold -= equipmentCost;
+          }
+          
+          // 抽取3个随机装备
+          const drawnEquipment = equipmentDB.drawRandomEquipment(EquipmentTier.BASIC, 3);
+          console.log('[装备抽取] 抽到:', drawnEquipment.map(e => e.name).join(', '));
+          
+          // 发送抽取结果给玩家
+          sendToClient(clientId, {
+            type: 'equipment_drawn',
+            equipment_options: drawnEquipment,
+            remaining_gold: isHost ? gameState.hostGold : gameState.guestGold
+          });
+          
+          // 广播金币变化给双方
+          room.players.forEach(playerId => {
+            sendToClient(playerId, {
+              type: 'gold_changed',
+              host_gold: gameState.hostGold,
+              guest_gold: gameState.guestGold,
+              income_data: {} // 购买装备不算收入
+            });
+          });
+          
+        } else if (data.action === 'equip_item') {
+          // 🎒 装备物品到英雄
+          const { equipment_id, card_id } = data.data;
+          const isHost = (clientId === room.host);
+          
+          console.log('[装备物品] 装备ID:', equipment_id, '英雄ID:', card_id);
+          
+          // 查找英雄卡牌
+          const card = engine.findCard(card_id);
+          if (!card) {
+            console.error('[装备失败] 英雄未找到:', card_id);
+            sendToClient(clientId, {
+              type: 'equip_failed',
+              error: '英雄未找到'
+            });
+            return;
+          }
+          
+          // 检查英雄所属
+          const cardIsHost = room.gameState.blueTeam.some(c => c.id === card_id);
+          if (cardIsHost !== isHost) {
+            console.error('[装备失败] 不能给对方英雄装备');
+            sendToClient(clientId, {
+              type: 'equip_failed',
+              error: '不能给对方英雄装备'
+            });
+            return;
+          }
+          
+          // 初始化装备数组
+          if (!card.equipment) {
+            card.equipment = [];
+          }
+          
+          // 检查装备数量限制
+          if (card.equipment.length >= 2) {
+            console.error('[装备失败] 装备已满:', card.card_name, '已有', card.equipment.length, '件装备');
+            sendToClient(clientId, {
+              type: 'equip_failed',
+              error: '该英雄装备已满（最多2件）'
+            });
+            return;
+          }
+          
+          // 获取装备数据
+          const equipment = equipmentDB.getEquipmentById(equipment_id);
+          if (!equipment) {
+            console.error('[装备失败] 装备数据未找到:', equipment_id);
+            sendToClient(clientId, {
+              type: 'equip_failed',
+              error: '装备数据错误'
+            });
+            return;
+          }
+          
+          // 添加装备
+          card.equipment.push(equipment);
+          console.log('✅ [装备成功] %s 装备了 %s (当前%d件)', card.card_name, equipment.name, card.equipment.length);
+          
+          // 应用装备效果
+          equipmentDB.applyEquipmentEffects(card, equipment);
+          
+          // 广播装备结果给双方
+          room.players.forEach(playerId => {
+            sendToClient(playerId, {
+              type: 'item_equipped',
+              card_id: card_id,
+              equipment: equipment,
+              card_stats: {
+                attack: card.attack,
+                max_health: card.max_health,
+                health: card.health,
+                armor: card.armor,
+                crit_rate: card.crit_rate,
+                crit_damage: card.crit_damage,
+                dodge_rate: card.dodge_rate
+              }
+            });
+          });
+          
         } else if (data.action === 'end_turn') {
           // 🎯 服务器权威管理回合切换
           const gameState = room.gameState;
@@ -694,6 +822,39 @@ wss.on('connection', (ws) => {
                     ally_new_health: lowestHpAlly ? lowestHpAlly.health : null
                   }
                 });
+              }
+            }
+          });
+          
+          // 💚 装备效果：提神水晶（每回合开始恢复30生命）
+          const allCards = [...gameState.blueCards, ...gameState.redCards];
+          allCards.forEach(card => {
+            if (card.health > 0 && card.equipment && card.equipment.length > 0) {
+              for (const equip of card.equipment) {
+                if (equip.effects) {
+                  for (const effect of equip.effects) {
+                    if (effect.type === 'heal_per_turn') {
+                      const oldHealth = card.health;
+                      const healAmount = Math.min(effect.value, card.max_health - card.health);
+                      card.health += healAmount;
+                      
+                      if (healAmount > 0) {
+                        console.log(`💚 [装备-${equip.name}] ${card.card_name} 回合开始恢复`);
+                        console.log(`   生命值: ${oldHealth} → ${card.health} (+${healAmount})`);
+                        
+                        // 添加到被动结果中（方便客户端显示）
+                        passiveResults.push({
+                          type: 'equipment_heal',
+                          card_id: card.id,
+                          card_name: card.card_name,
+                          equipment_name: equip.name,
+                          heal_amount: healAmount,
+                          new_health: card.health
+                        });
+                      }
+                    }
+                  }
+                }
               }
             }
           });

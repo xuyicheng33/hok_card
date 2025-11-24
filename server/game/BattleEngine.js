@@ -46,6 +46,21 @@ class BattleEngine {
       console.log(`   💀 斩杀增伤: +30% (${baseDamage - bonusDamage} → ${baseDamage})`);
     }
     
+    // 🗡️ 装备效果：匕首（增伤+3%）
+    if (attacker.equipment && attacker.equipment.length > 0) {
+      for (const equip of attacker.equipment) {
+        if (equip.effects) {
+          for (const effect of equip.effects) {
+            if (effect.type === 'damage_amplify') {
+              const bonusDamage = Math.floor(baseDamage * effect.value);
+              baseDamage = baseDamage + bonusDamage;
+              console.log(`   🗡️ 装备「${equip.name}」增伤: +${(effect.value * 100).toFixed(1)}% (${baseDamage - bonusDamage} → ${baseDamage})`);
+            }
+          }
+        }
+      }
+    }
+    
     // 🎲 暴击判定（服务器端权威）
     const isCritical = Math.random() < attacker.crit_rate;
     let finalDamage = baseDamage;
