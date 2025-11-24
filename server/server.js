@@ -802,6 +802,21 @@ wss.on('connection', (ws) => {
           }
           const isHost = (clientId === room.host);
           const playerTeam = isHost ? 'blue' : 'red';
+          
+          // 🔒 验证回合（防止非当前回合玩家操作）
+          const currentTurn = gameState.currentTurn || 1;
+          const isHostTurn = (currentTurn % 2 === 1);
+          const isPlayerTurn = (isHost === isHostTurn);
+          
+          if (!isPlayerTurn) {
+            console.error('[装备购买失败] 不是该玩家的回合');
+            sendToClient(clientId, {
+              type: 'buy_equipment_failed',
+              error: '不是你的回合'
+            });
+            return;
+          }
+          
           const equipmentCost = 15; // 固定15金币
           
           console.log('\n═══════════════════════════════════════════════════════');
@@ -861,6 +876,21 @@ wss.on('connection', (ws) => {
           // 🎒 装备物品到英雄
           const { equipment_id, card_name } = data.data;
           const isHost = (clientId === room.host);
+          const gameState = room.gameState;
+          
+          // 🔒 验证回合（防止非当前回合玩家操作）
+          const currentTurn = gameState.currentTurn || 1;
+          const isHostTurn = (currentTurn % 2 === 1);
+          const isPlayerTurn = (isHost === isHostTurn);
+          
+          if (!isPlayerTurn) {
+            console.error('[装备失败] 不是该玩家的回合');
+            sendToClient(clientId, {
+              type: 'equip_failed',
+              error: '不是你的回合'
+            });
+            return;
+          }
           
           console.log('\n═══════════════════════════════════════════════════════');
           console.log('🎒 [装备物品请求]');
@@ -982,6 +1012,20 @@ wss.on('connection', (ws) => {
           
           const isHost = (clientId === room.host);
           const playerTeam = isHost ? 'blue' : 'red';
+          
+          // 🔒 验证回合（防止非当前回合玩家操作）
+          const currentTurn = gameState.currentTurn || 1;
+          const isHostTurn = (currentTurn % 2 === 1);
+          const isPlayerTurn = (isHost === isHostTurn);
+          
+          if (!isPlayerTurn) {
+            console.error('[合成失败] 不是该玩家的回合');
+            sendToClient(clientId, {
+              type: 'craft_failed',
+              error: '不是你的回合'
+            });
+            return;
+          }
           
           // 解析请求数据
           const { material_ids, hero_id } = data.data || {};
