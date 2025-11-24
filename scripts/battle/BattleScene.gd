@@ -51,9 +51,8 @@ var is_using_skill: bool = false
 var is_selecting_equipment_target: bool = false  # 是否在选择装备目标
 var pending_equipment: Dictionary = {}  # 待装备的装备数据
 
-# 🔨 装备合成弹窗
-var craft_popup: PopupPanel = null
-const CRAFT_POPUP_SCENE = preload("res://scenes/ui/EquipmentCraftPopup.tscn")
+# 🔨 装备合成模式
+var is_selecting_craft_target: bool = false  # 是否在选择合成目标卡牌
 
 # 战斗模式支持
 var battle_mode: String = "2v2"  # 默认2v2模式
@@ -287,9 +286,6 @@ func get_node_references():
 	# 连接被动技能触发信号
 	if BattleManager and not BattleManager.passive_skill_triggered.is_connected(_on_passive_skill_triggered):
 		BattleManager.passive_skill_triggered.connect(_on_passive_skill_triggered)
-	
-	# 🔨 初始化装备合成弹窗
-	call_deferred("initialize_craft_popup")
 	
 	# 初始化技能点显示
 	call_deferred("update_initial_skill_points")
@@ -1489,6 +1485,15 @@ func clear_battle_entities():
 func _on_card_clicked(entity):
 	print("卡牌被点击: %s (is_player: %s)" % [entity.get_card().card_name, entity.is_player()])
 	
+	# 🔨 装备合成模式：点击己方卡牌进行合成
+	if is_selecting_craft_target:
+		if entity.is_player():
+			_handle_craft_card_click(entity)
+		else:
+			if message_system:
+				message_system.add_message("请点击己方英雄卡牌", "system")
+		return
+	
 	# 🎒 装备选择模式：点击己方卡牌进行装备
 	if is_selecting_equipment_target:
 		# 检查是否点击的是己方卡牌
@@ -2580,6 +2585,14 @@ func execute_healing_skill(caster, target):
 func _input(event):
 	if event is InputEventKey and event.pressed:
 		if event.keycode == KEY_ESCAPE:
+			# 如果在合成选择模式，先退出选择模式
+			if is_selecting_craft_target:
+				is_selecting_craft_target = false
+				_clear_all_highlights()
+				if message_system:
+					message_system.add_message("已取消合成", "system")
+				return
+			
 			_on_back_to_menu_pressed()
 
 ## 技能点变化处理
@@ -2846,20 +2859,6 @@ func _on_buy_equipment_pressed():
 		if message_system:
 			message_system.add_message("装备系统仅支持在线模式", "system")
 
-## 🔨 初始化装备合成弹窗
-func initialize_craft_popup():
-	if not CRAFT_POPUP_SCENE:
-		print("❌ 无法加载装备合成弹窗场景")
-		return
-	
-	craft_popup = CRAFT_POPUP_SCENE.instantiate()
-	if craft_popup:
-		add_child(craft_popup)
-		craft_popup.craft_confirmed.connect(_on_craft_confirmed)
-		print("✅ 装备合成弹窗已初始化")
-	else:
-		print("❌ 无法实例化装备合成弹窗")
-
 ## 🔨 合成装备按钮点击
 func _on_craft_equipment_pressed():
 	print("🔨 [UI] 合成装备按钮被点击")
@@ -2882,24 +2881,81 @@ func _on_craft_equipment_pressed():
 			message_system.add_message("不是你的回合", "system")
 		return
 	
-	# 显示合成弹窗
-	if craft_popup:
-		var current_gold = BattleManager.player_gold
-		craft_popup.show_popup(BattleManager.player_cards, current_gold)
-	else:
-		print("❌ 合成弹窗未初始化")
-
-## 🔨 合成确认事件处理
-func _on_craft_confirmed(hero_id: String, material_ids: Array):
-	print("🔨 [UI] 确认合成: 英雄%s, 材料%s" % [hero_id, material_ids])
-	
-	# 发送合成请求到服务器
-	if NetworkManager:
-		NetworkManager.send_craft_equipment(hero_id, material_ids)
+	# 检查金币
+	if BattleManager.player_gold < 10:
+		print("⚠️ 金币不足，无法合成装备")
 		if message_system:
-			message_system.add_message("发送合成请求...", "system")
-	else:
-		print("❌ NetworkManager 不存在")
+			message_system.add_message("金币不足（需要10金币）", "system")
+		return
+	
+	# 进入合成选择模式
+	is_selecting_craft_target = true
+	if message_system:
+		message_system.add_message("请选择要合成装备的英雄卡牌", "system")
+	
+	# 更新卡牌高亮显示
+	_update_card_highlights_for_craft()
+
+## 🔨 更新卡牌高亮（合成模式）
+func _update_card_highlights_for_craft():
+	# 高亮显示有2个以上装备的我方卡牌
+	for entity in player_entities:
+		if entity and entity.card:
+			var card = entity.card
+			var equipment_count = 0
+			if card.equipment:
+				equipment_count = card.equipment.size()
+			
+			# 至少有2个装备才能合成
+			if equipment_count >= 2 and card.health > 0:
+				entity.set_highlight(true, Color(1.0, 0.65, 0.0, 0.3))  # 橙色高亮
+			else:
+				entity.set_highlight(false)
+
+## 🔨 处理合成模式下的卡牌点击
+func _handle_craft_card_click(entity):
+	var card = entity.card
+	
+	# 检查装备数量
+	if not card.equipment or card.equipment.size() < 2:
+		if message_system:
+			message_system.add_message("该英雄装备不足2件", "system")
+		return
+	
+	# 自动选择前两个装备
+	var material_ids = [
+		card.equipment[0].get("id", ""),
+		card.equipment[1].get("id", "")
+	]
+	
+	print("🔨 选择卡牌 %s 进行合成" % card.card_name)
+	print("   材料1: %s" % card.equipment[0].get("name", "未知"))
+	print("   材料2: %s" % card.equipment[1].get("name", "未知"))
+	
+	# 确认提示
+	if message_system:
+		var mat1_name = card.equipment[0].get("name", "未知")
+		var mat2_name = card.equipment[1].get("name", "未知")
+		message_system.add_message("合成: %s + %s" % [mat1_name, mat2_name], "system")
+	
+	# 发送合成请求
+	if NetworkManager:
+		NetworkManager.send_craft_equipment(card.id, material_ids)
+		if message_system:
+			message_system.add_message("正在合成...", "system")
+	
+	# 退出选择模式
+	is_selecting_craft_target = false
+	_clear_all_highlights()
+
+## 清除所有卡牌高亮
+func _clear_all_highlights():
+	for entity in player_entities:
+		if entity:
+			entity.set_highlight(false)
+	for entity in enemy_entities:
+		if entity:
+			entity.set_highlight(false)
 
 ## 📦 显示装备选择面板（3选1）
 func _show_equipment_selection_panel(equipment_options: Array):
