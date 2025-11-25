@@ -33,7 +33,7 @@ loop = true
 
 [node name="OnlineBattleBtn" type="TextureButton" parent="."]
 layout_mode = 0
-offset_left = 805.00006
+offset_left = 805.0
 offset_top = 295.0
 offset_right = 2853.0
 offset_bottom = 1127.0
@@ -44,8 +44,8 @@ script = ExtResource("4_pixel_btn")
 
 [node name="TutorialBtn" type="TextureButton" parent="."]
 layout_mode = 0
-offset_left = 778.0001
-offset_top = 588.00006
+offset_left = 778.0
+offset_top = 588.0
 offset_right = 2826.0
 offset_bottom = 1408.0
 scale = Vector2(0.17, 0.17)
@@ -54,7 +54,7 @@ script = ExtResource("4_pixel_btn")
 
 [node name="BattleTestBtn" type="TextureButton" parent="."]
 layout_mode = 0
-offset_left = 1142.0001
+offset_left = 1142.0
 offset_top = 551.0
 offset_right = 3190.0
 offset_bottom = 1411.0
@@ -75,7 +75,7 @@ script = ExtResource("4_pixel_btn")
 [node name="ExitBtn" type="TextureButton" parent="."]
 layout_mode = 0
 offset_left = 1119.0
-offset_top = 749.99994
+offset_top = 750.0
 offset_right = 3167.0
 offset_bottom = 1586.0
 scale = Vector2(0.17, 0.17)
@@ -85,7 +85,7 @@ script = ExtResource("4_pixel_btn")
 [node name="CardShowcaseBtn" type="TextureButton" parent="."]
 layout_mode = 0
 offset_left = 1468.0
-offset_top = 246.00002
+offset_top = 246.0
 offset_right = 2674.0
 offset_bottom = 2294.0
 scale = Vector2(0.3, 0.3)

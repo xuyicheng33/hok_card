@@ -4,6 +4,9 @@ extends Control
 
 func _ready():
 	print("新主菜单启动...")
+	# 尝试隐藏状态栏（Android全屏）
+	if OS.get_name() == "Android":
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 	_setup_buttons()
 	_setup_video_background()
 
