@@ -8,7 +8,7 @@
 [ext_resource type="Texture2D" uid="uid://ca80etn6h0sdf" path="res://新主菜单UI/战斗测试.png" id="6_battle"]
 [ext_resource type="Texture2D" uid="uid://b8jxxt5pn8h1w" path="res://新主菜单UI/设置.png" id="7_settings"]
 [ext_resource type="Texture2D" uid="uid://dut2vosb4lr8q" path="res://新主菜单UI/退出游戏.png" id="8_exit"]
-[ext_resource type="Texture2D" uid="uid://b5pokjwttkjm5" path="res://assets/images/backgrounds/main_menu_bg.jpg" id="9_bg"]
+[ext_resource type="VideoStream" uid="uid://ds5nbn583rq6o" path="res://assets/videos/background.ogv" id="9_video"]
 
 [node name="MainMenuNew" type="Control"]
 layout_mode = 3
@@ -19,19 +19,17 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("2_script")
 
-[node name="Background" type="TextureRect" parent="."]
+[node name="Background" type="VideoStreamPlayer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -400.0
-offset_right = -100.0
 grow_horizontal = 2
 grow_vertical = 2
-scale = Vector2(1.05, 1.05)
-texture = ExtResource("9_bg")
-expand_mode = 1
-stretch_mode = 6
+stream = ExtResource("9_video")
+autoplay = true
+expand = true
+loop = true
 
 [node name="OnlineBattleBtn" type="TextureButton" parent="."]
 layout_mode = 0

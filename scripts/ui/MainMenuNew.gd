@@ -5,6 +5,12 @@ extends Control
 func _ready():
 	print("新主菜单启动...")
 	_setup_buttons()
+	_setup_video_background()
+
+func _setup_video_background():
+	var video = get_node_or_null("Background")
+	if video and video is VideoStreamPlayer:
+		video.play()
 
 func _setup_buttons():
 	_connect_button("CardShowcaseBtn", _on_card_showcase_pressed)

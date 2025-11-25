@@ -23,6 +23,7 @@ SettingsManager="*res://scripts/core/SettingsManager.gd"
 BattleManager="*res://scripts/core/BattleManager.gd"
 SkillManager="*res://scripts/core/SkillManager.gd"
 NetworkManager="*res://scripts/core/NetworkManager.gd"
+PreloadManager="*res://scripts/core/PreloadManager.gd"
 
 [display]
 
