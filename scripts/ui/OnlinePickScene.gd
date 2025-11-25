@@ -138,6 +138,38 @@ func _on_pick_failed(error_msg: String):
 func _on_game_started(data: Dictionary):
 	print("🎮 [UI] 游戏开始，切换到战斗场景")
 	
+	# 🎯 根据服务器发送的卡牌数量判断战斗模式
+	var blue_count = data.get("blue_cards_count", 3)
+	var red_count = data.get("red_cards_count", 3)
+	var online_battle_mode = "online_3v3"  # 默认3v3
+	
+	if blue_count == 3 and red_count == 3:
+		online_battle_mode = "online_3v3"
+	elif blue_count == 2 and red_count == 2:
+		online_battle_mode = "online_2v2"
+	elif blue_count == 1 and red_count == 1:
+		online_battle_mode = "online_1v1"
+	
+	print("🎮 在线模式: %s (蓝方%d张 vs 红方%d张)" % [online_battle_mode, blue_count, red_count])
+	
+	# 🎯 保存服务器发送的卡牌数据到全局，供BattleScene使用
+	if data.has("blue_cards") and data.has("red_cards"):
+		Engine.set_meta("online_blue_cards", data.blue_cards)
+		Engine.set_meta("online_red_cards", data.red_cards)
+		print("📦 保存卡牌数据: 蓝方%d张, 红方%d张" % [data.blue_cards.size(), data.red_cards.size()])
+	else:
+		print("⚠️ 警告：服务器未发送卡牌数据！")
+	
+	# 🌐 确保NetworkManager状态正确
+	NetworkManager.connection_status = NetworkManager.ConnectionStatus.IN_GAME
+	
+	# 🛡️ 设置BattleManager
+	if BattleManager != null:
+		BattleManager.is_online_mode = true
+		BattleManager.is_my_turn = NetworkManager.is_host
+		Engine.set_meta("online_battle_mode", online_battle_mode)
+		print("🌐 在线模式设置: is_host=%s, mode=%s" % [NetworkManager.is_host, online_battle_mode])
+	
 	# 断开信号连接
 	_disconnect_network_signals()
 	
