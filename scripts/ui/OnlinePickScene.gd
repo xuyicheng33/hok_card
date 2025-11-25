@@ -61,6 +61,8 @@ func _connect_network_signals():
 		NetworkManager.pick_failed.connect(_on_pick_failed)
 	if not NetworkManager.game_started.is_connected(_on_game_started):
 		NetworkManager.game_started.connect(_on_game_started)
+	if not NetworkManager.opponent_disconnected.is_connected(_on_opponent_disconnected):
+		NetworkManager.opponent_disconnected.connect(_on_opponent_disconnected)
 
 ## 选人阶段开始
 func _on_pick_phase_started(data: Dictionary):
@@ -134,6 +136,15 @@ func _on_pick_failed(error_msg: String):
 	print("❌ [UI] 选人失败: %s" % error_msg)
 	_show_error_message(error_msg)
 
+## 对手断线
+func _on_opponent_disconnected():
+	print("⚠️ [UI] 对手已断开连接")
+	_show_error_message("对手已断开连接")
+	# 延迟返回主菜单
+	await get_tree().create_timer(2.0).timeout
+	_disconnect_network_signals()
+	get_tree().change_scene_to_file("res://scenes/main/MainMenu.tscn")
+
 ## 游戏开始 - 切换到战斗场景
 func _on_game_started(data: Dictionary):
 	print("🎮 [UI] 游戏开始，切换到战斗场景")
@@ -187,6 +198,8 @@ func _disconnect_network_signals():
 		NetworkManager.pick_failed.disconnect(_on_pick_failed)
 	if NetworkManager.game_started.is_connected(_on_game_started):
 		NetworkManager.game_started.disconnect(_on_game_started)
+	if NetworkManager.opponent_disconnected.is_connected(_on_opponent_disconnected):
+		NetworkManager.opponent_disconnected.disconnect(_on_opponent_disconnected)
 
 ## 创建卡牌网格
 func _create_card_grid():
