@@ -376,13 +376,15 @@ func create_equipment_icon(equipment: Dictionary) -> TextureRect:
 	if not equipment:
 		print("⚠️ 装备数据为空")
 		return null
-	if not equipment.has("icon"):
-		print("⚠️ 装备没有icon字段: ", equipment)
+	
+	var icon_value = equipment.get("icon", "")
+	if icon_value == null or icon_value == "":
+		print("⚠️ 装备没有有效icon字段: ", equipment)
 		return null
 	
 	# 构建图标路径
 	var category_folder = "攻击" if equipment.get("category") == "attack" else "防御"
-	var icon_file = equipment.get("icon", "")
+	var icon_file = str(icon_value)  # 确保是字符串
 	var icon_path = "res://assets/equipment/%s/%s" % [category_folder, icon_file]
 	
 	print("🖼️ 创建图标: category=%s, icon=%s, path=%s" % [equipment.get("category", "?"), icon_file, icon_path])
