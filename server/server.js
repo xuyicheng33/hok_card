@@ -152,7 +152,268 @@ function checkGameOver(roomId, room) {
   return false;
 }
 
-// 初始化游戏状态
+// ═══════════════════════════════════════════════════════
+// 🎯 英雄选择系统 - 1-2-2-1 选人顺序
+// ═══════════════════════════════════════════════════════
+
+// 所有可选英雄列表
+const ALL_HEROES = [
+  { id: 'duoliya_001', name: '朵莉亚', role: '辅助' },
+  { id: 'lan_002', name: '澜', role: '刺客' },
+  { id: 'gongsunli_003', name: '公孙离', role: '射手' },
+  { id: 'sunshangxiang_004', name: '孙尚香', role: '射手' },
+  { id: 'yao_005', name: '瑶', role: '辅助' },
+  { id: 'daqiao_006', name: '大乔', role: '辅助' },
+  { id: 'shaosiyuan_007', name: '少司缘', role: '法师' },
+  { id: 'yangyuhuan_008', name: '杨玉环', role: '法师' }
+];
+
+// 选人顺序: 1-2-2-1 (蓝1, 红2, 蓝2, 红1)
+const PICK_ORDER = ['blue', 'red', 'red', 'blue', 'blue', 'red'];
+
+// 开始选人阶段
+function startPickPhase(roomId, room) {
+  console.log('\n🎯═══════════════════════════════════════════════════════');
+  console.log('   英雄选择阶段开始');
+  console.log('   房间: %s', roomId);
+  console.log('   选人顺序: 蓝1 → 红2 → 蓝2 → 红1');
+  console.log('═══════════════════════════════════════════════════════\n');
+  
+  // 初始化选人状态
+  room.pickState = {
+    availableHeroes: [...ALL_HEROES],  // 可选英雄
+    bluePicks: [],     // 蓝方已选
+    redPicks: [],      // 红方已选
+    currentPickIndex: 0,  // 当前选人顺序索引
+    currentTeam: 'blue'   // 当前选人方
+  };
+  
+  // 广播选人阶段开始
+  broadcastToRoom(roomId, {
+    type: 'pick_phase_start',
+    available_heroes: room.pickState.availableHeroes,
+    pick_order: PICK_ORDER,
+    current_team: 'blue',
+    current_pick_index: 0,
+    blue_picks: [],
+    red_picks: [],
+    host_name: room.playerNames[room.host],
+    guest_name: room.playerNames[room.guest]
+  });
+}
+
+// 处理英雄选择
+function handleHeroPick(roomId, room, clientId, heroId) {
+  const pickState = room.pickState;
+  if (!pickState) {
+    console.error('[选人失败] 选人状态不存在');
+    return { success: false, error: '选人阶段未开始' };
+  }
+  
+  // 检查是否轮到该玩家
+  const isHost = clientId === room.host;
+  const currentTeam = pickState.currentTeam;
+  const shouldBeHost = currentTeam === 'blue';
+  
+  if (isHost !== shouldBeHost) {
+    console.error('[选人失败] 不是你的回合');
+    return { success: false, error: '不是你的选人回合' };
+  }
+  
+  // 检查英雄是否可选
+  const heroIndex = pickState.availableHeroes.findIndex(h => h.id === heroId);
+  if (heroIndex === -1) {
+    console.error('[选人失败] 英雄不可选:', heroId);
+    return { success: false, error: '该英雄已被选择或不存在' };
+  }
+  
+  // 选择英雄
+  const selectedHero = pickState.availableHeroes.splice(heroIndex, 1)[0];
+  
+  if (currentTeam === 'blue') {
+    pickState.bluePicks.push(selectedHero);
+    console.log('🔵 蓝方选择: %s', selectedHero.name);
+  } else {
+    pickState.redPicks.push(selectedHero);
+    console.log('🔴 红方选择: %s', selectedHero.name);
+  }
+  
+  // 更新选人顺序
+  pickState.currentPickIndex++;
+  
+  // 检查是否选人完成
+  if (pickState.currentPickIndex >= PICK_ORDER.length) {
+    console.log('\n✅ 选人完成！');
+    console.log('   蓝方: %s', pickState.bluePicks.map(h => h.name).join(', '));
+    console.log('   红方: %s', pickState.redPicks.map(h => h.name).join(', '));
+    
+    // 广播选人结果
+    broadcastToRoom(roomId, {
+      type: 'pick_complete',
+      blue_picks: pickState.bluePicks,
+      red_picks: pickState.redPicks
+    });
+    
+    // 延迟后开始游戏
+    setTimeout(() => {
+      finishPickPhase(roomId, room);
+    }, 1000);
+    
+    return { success: true, complete: true };
+  }
+  
+  // 更新当前选人方
+  pickState.currentTeam = PICK_ORDER[pickState.currentPickIndex];
+  
+  // 广播选人更新
+  broadcastToRoom(roomId, {
+    type: 'pick_update',
+    picked_hero: selectedHero,
+    picked_by: currentTeam,
+    available_heroes: pickState.availableHeroes,
+    current_team: pickState.currentTeam,
+    current_pick_index: pickState.currentPickIndex,
+    blue_picks: pickState.bluePicks,
+    red_picks: pickState.redPicks
+  });
+  
+  return { success: true, complete: false };
+}
+
+// 选人完成，开始游戏
+function finishPickPhase(roomId, room) {
+  const pickState = room.pickState;
+  
+  console.log('\n🎮 初始化游戏...');
+  
+  // 使用选择的英雄初始化游戏
+  initGameStateWithPicks(roomId, room, pickState.bluePicks, pickState.redPicks);
+  
+  // 切换房间状态
+  room.status = 'playing';
+  
+  // 准备发送给客户端的卡牌数据
+  const blueCardsData = room.gameState.blueCards.map(card => ({
+    id: card.id,
+    card_name: card.card_name,
+    max_health: card.max_health,
+    health: card.health,
+    attack: card.attack,
+    armor: card.armor,
+    shield: card.shield || 0,
+    crit_rate: card.crit_rate || 0,
+    crit_damage: card.crit_damage || 1.3,
+    skill_name: card.skill_name,
+    skill_cost: card.skill_cost,
+    dodge_rate: card.dodge_rate || 0,
+    dodge_bonus: card.dodge_bonus || 0,
+    daqiao_passive_used: card.daqiao_passive_used || false,
+    skill_ends_turn: card.skill_ends_turn || false
+  }));
+  
+  const redCardsData = room.gameState.redCards.map(card => ({
+    id: card.id,
+    card_name: card.card_name,
+    max_health: card.max_health,
+    health: card.health,
+    attack: card.attack,
+    armor: card.armor,
+    shield: card.shield || 0,
+    crit_rate: card.crit_rate || 0,
+    crit_damage: card.crit_damage || 1.3,
+    skill_name: card.skill_name,
+    skill_cost: card.skill_cost,
+    dodge_rate: card.dodge_rate || 0,
+    dodge_bonus: card.dodge_bonus || 0,
+    daqiao_passive_used: card.daqiao_passive_used || false,
+    skill_ends_turn: card.skill_ends_turn || false
+  }));
+  
+  // 广播游戏开始
+  broadcastToRoom(roomId, { 
+    type: 'game_start', 
+    room_id: roomId, 
+    players: room.players, 
+    player_names: room.playerNames, 
+    host: room.host,
+    blue_cards: blueCardsData,
+    red_cards: redCardsData,
+    blue_cards_count: room.gameState.blueCards.length,
+    red_cards_count: room.gameState.redCards.length,
+    initial_skill_points: 4,
+    actions_per_turn: 3,
+    host_gold: room.goldManager ? room.goldManager.hostGold : 10,
+    guest_gold: room.goldManager ? room.goldManager.guestGold : 10
+  });
+  
+  console.log('[游戏开始]', roomId);
+}
+
+// 使用选择的英雄初始化游戏状态
+function initGameStateWithPicks(roomId, room, bluePicks, redPicks) {
+  // 创建蓝方卡牌
+  const blueCards = bluePicks.map((hero, index) => {
+    const cardData = cardDB.getCard(hero.id);
+    return {
+      id: `${hero.id}_blue_${index}`,
+      ...cardData,
+      health: cardData.max_health,
+      shield: 0,
+      equipment: [],
+      daqiao_passive_used: hero.id === 'daqiao_006' ? false : undefined
+    };
+  });
+  
+  // 创建红方卡牌
+  const redCards = redPicks.map((hero, index) => {
+    const cardData = cardDB.getCard(hero.id);
+    return {
+      id: `${hero.id}_red_${index}`,
+      ...cardData,
+      health: cardData.max_health,
+      shield: 0,
+      equipment: [],
+      daqiao_passive_used: hero.id === 'daqiao_006' ? false : undefined
+    };
+  });
+  
+  room.gameState = {
+    blueCards,
+    redCards,
+    blueTeam: blueCards,
+    redTeam: redCards,
+    currentTurn: 1,
+    currentPlayer: 'host',
+    hostSkillPoints: 4,
+    guestSkillPoints: 4,
+    blueSkillPoints: 4,
+    redSkillPoints: 4,
+    blueActionsUsed: 0,
+    redActionsUsed: 0,
+    actionsPerTurn: 3,
+    blueGold: 10,
+    redGold: 10,
+    blueDeathCount: 0,
+    redDeathCount: 0,
+    blueCompensationGiven: false,
+    redCompensationGiven: false
+  };
+  
+  // 创建战斗引擎
+  const engine = new BattleEngine(roomId, room.gameState);
+  battleEngines.set(roomId, engine);
+  
+  // 创建金币管理器
+  const goldManager = new GoldManager(room.gameState);
+  room.goldManager = goldManager;
+  
+  console.log('[游戏初始化]', roomId, '战斗引擎创建完成');
+  console.log('💰 [金币管理器] 已创建 - 蓝方:%d, 红方:%d', goldManager.hostGold, goldManager.guestGold);
+  console.log('  蓝方:', blueCards.map(c => `${c.card_name}(${c.health}/${c.max_health}, ATK:${c.attack})`));
+  console.log('  红方:', redCards.map(c => `${c.card_name}(${c.health}/${c.max_health}, ATK:${c.attack})`));
+}
+
+// 初始化游戏状态（保留原函数用于兼容）
 function initGameState(roomId) {
   const room = rooms.get(roomId);
   if (!room) return;
@@ -277,72 +538,32 @@ wss.on('connection', (ws) => {
           console.log('[加入房间]', clientId, '加入', data.room_id);
           if (room.players.length === 2) {
             setTimeout(() => {
-              room.status = 'playing';
-              
-              // 🎮 初始化游戏状态
-              initGameState(data.room_id);
-              
-              // 🎯 准备发送给客户端的卡牌数据（包含所有必要信息）
-              const blueCardsData = room.gameState.blueCards.map(card => ({
-                id: card.id,
-                card_name: card.card_name,
-                max_health: card.max_health,
-                health: card.health,
-                attack: card.attack,
-                armor: card.armor,
-                shield: card.shield || 0,
-                crit_rate: card.crit_rate || 0,
-                crit_damage: card.crit_damage || 1.3,
-                skill_name: card.skill_name,
-                skill_cost: card.skill_cost,
-                // 🎯 特殊属性（公孙离、大乔等）
-                dodge_rate: card.dodge_rate || 0,
-                dodge_bonus: card.dodge_bonus || 0,
-                daqiao_passive_used: card.daqiao_passive_used || false,
-                skill_ends_turn: card.skill_ends_turn || false
-              }));
-              
-              const redCardsData = room.gameState.redCards.map(card => ({
-                id: card.id,
-                card_name: card.card_name,
-                max_health: card.max_health,
-                health: card.health,
-                attack: card.attack,
-                armor: card.armor,
-                shield: card.shield || 0,
-                crit_rate: card.crit_rate || 0,
-                crit_damage: card.crit_damage || 1.3,
-                skill_name: card.skill_name,
-                skill_cost: card.skill_cost,
-                // 🎯 特殊属性（公孙离、大乔等）
-                dodge_rate: card.dodge_rate || 0,
-                dodge_bonus: card.dodge_bonus || 0,
-                daqiao_passive_used: card.daqiao_passive_used || false,
-                skill_ends_turn: card.skill_ends_turn || false
-              }));
-              
-              broadcastToRoom(data.room_id, { 
-                type: 'game_start', 
-                room_id: data.room_id, 
-                players: room.players, 
-                player_names: room.playerNames, 
-                host: room.host,
-                // 🎯 发送完整卡牌数据
-                blue_cards: blueCardsData,
-                red_cards: redCardsData,
-                // 🎯 发送卡牌数量信息，让客户端知道是几v几
-                blue_cards_count: room.gameState.blueCards.length,
-                red_cards_count: room.gameState.redCards.length,
-                // 🎯 初始技能点和行动点
-                initial_skill_points: 4,
-                actions_per_turn: 3,
-                // 💰 初始金币（通过 GoldManager 安全访问）
-                host_gold: room.goldManager ? room.goldManager.hostGold : 10,
-                guest_gold: room.goldManager ? room.goldManager.guestGold : 10
-              });
-              console.log('[游戏开始]', data.room_id);
+              // 🎯 进入选人阶段而不是直接开始游戏
+              room.status = 'picking';
+              startPickPhase(data.room_id, room);
             }, 500);
           }
+        }
+      }
+      // 🎯 处理英雄选择
+      else if (data.type === 'pick_hero') {
+        const roomId = playerRooms.get(clientId);
+        const room = rooms.get(roomId);
+        
+        if (!roomId || !room) {
+          sendToClient(clientId, { type: 'pick_failed', error: '房间不存在' });
+          return;
+        }
+        
+        if (room.status !== 'picking') {
+          sendToClient(clientId, { type: 'pick_failed', error: '当前不在选人阶段' });
+          return;
+        }
+        
+        const result = handleHeroPick(roomId, room, clientId, data.hero_id);
+        
+        if (!result.success) {
+          sendToClient(clientId, { type: 'pick_failed', error: result.error });
         }
       }
       else if (data.type === 'game_action') {

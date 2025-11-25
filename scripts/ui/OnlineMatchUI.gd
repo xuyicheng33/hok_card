@@ -178,6 +178,9 @@ func connect_signals():
 	NetworkManager.game_started.connect(_on_game_started)
 	NetworkManager.opponent_disconnected.connect(_on_opponent_disconnected)
 	
+	# 🎯 选人阶段信号
+	NetworkManager.pick_phase_started.connect(_on_pick_phase_started)
+	
 	# 自动连接服务器
 	call_deferred("auto_connect")
 
@@ -277,9 +280,17 @@ func _on_opponent_joined(opponent_data: Dictionary):
 	status_label.text = "对手已加入: " + NetworkManager.opponent_name
 	is_waiting_opponent = false
 	
-	# 启用开始游戏按钮
-	if NetworkManager.is_host:
-		start_game_button.disabled = false
+	# 不再需要手动启用开始按钮，服务器会自动进入选人阶段
+	# if NetworkManager.is_host:
+	#	start_game_button.disabled = false
+
+## 🎯 选人阶段开始 - 跳转到选人界面
+func _on_pick_phase_started(pick_data: Dictionary):
+	print("🎯 [UI] 收到选人阶段开始信号，跳转到选人界面")
+	status_label.text = "进入英雄选择..."
+	
+	# 切换到选人场景
+	get_tree().change_scene_to_file("res://scenes/modes/OnlinePickScene.tscn")
 
 func _on_game_started(game_data: Dictionary):
 	print("游戏即将开始...")

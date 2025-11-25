@@ -45,6 +45,12 @@ signal craft_failed(error_message: String)  # 🔨 装备合成失败
 signal opponent_crafted(craft_data: Dictionary)  # 🔨 对手合成装备通知（包含完整数据）
 signal game_over(game_result: Dictionary)  # 🏆 游戏结束（服务器权威）
 
+# 🎯 英雄选择系统信号
+signal pick_phase_started(pick_data: Dictionary)  # 选人阶段开始
+signal pick_updated(pick_data: Dictionary)        # 选人更新
+signal pick_complete(pick_data: Dictionary)       # 选人完成
+signal pick_failed(error_message: String)         # 选人失败
+
 func _ready():
 	print("网络管理器初始化...")
 	set_process(false)
@@ -151,6 +157,36 @@ func handle_server_message(message: Dictionary):
 			connection_status = ConnectionStatus.IN_GAME
 			print("游戏开始!")
 			game_started.emit(message)
+		
+		# 🎯 英雄选择阶段消息
+		"pick_phase_start":
+			print("🎯 选人阶段开始")
+			var available = message.get("available_heroes", [])
+			var current_team = message.get("current_team", "blue")
+			print("   可选英雄: %d个" % available.size())
+			print("   当前选人方: %s" % current_team)
+			pick_phase_started.emit(message)
+		
+		"pick_update":
+			var picked_hero = message.get("picked_hero", {})
+			var picked_by = message.get("picked_by", "")
+			var current_team = message.get("current_team", "")
+			print("🎯 选人更新: %s 选择了 %s" % [picked_by, picked_hero.get("name", "")])
+			print("   下一个选人方: %s" % current_team)
+			pick_updated.emit(message)
+		
+		"pick_complete":
+			var blue_picks = message.get("blue_picks", [])
+			var red_picks = message.get("red_picks", [])
+			print("🎯 选人完成!")
+			print("   蓝方: %s" % ", ".join(blue_picks.map(func(h): return h.get("name", ""))))
+			print("   红方: %s" % ", ".join(red_picks.map(func(h): return h.get("name", ""))))
+			pick_complete.emit(message)
+		
+		"pick_failed":
+			var error_msg = message.get("error", "选人失败")
+			print("❌ 选人失败: %s" % error_msg)
+			pick_failed.emit(error_msg)
 		
 		"opponent_action":
 			print("收到对手操作: %s" % message.action)
@@ -351,6 +387,20 @@ func send_craft_equipment(hero_id: String, material_ids: Array) -> bool:
 		"hero_id": hero_id,
 		"material_ids": material_ids
 	})
+
+## 🎯 发送英雄选择请求
+func send_pick_hero(hero_id: String) -> bool:
+	if connection_status != ConnectionStatus.IN_ROOM:
+		print("❌ 不在房间中，无法选人")
+		return false
+	
+	var message = {
+		"type": "pick_hero",
+		"hero_id": hero_id
+	}
+	
+	print("🎯 发送选人请求: %s" % hero_id)
+	return send_message(message)
 
 ## 发送游戏操作的通用方法
 func send_game_action(action_type: String, data: Dictionary) -> bool:
