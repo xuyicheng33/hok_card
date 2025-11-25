@@ -2120,7 +2120,7 @@ func _on_cancel_skill_pressed():
 func _on_back_to_menu_pressed():
 	# 遵循规范：返回主菜单时重置所有状态
 	reset_all_global_states()
-	get_tree().change_scene_to_file("res://scenes/main/MainMenu.tscn")
+	get_tree().change_scene_to_file("res://scenes/main/MainMenuNew.tscn")
 
 ## 显示卡牌详细信息弹窗
 func show_card_info_popup(entity):

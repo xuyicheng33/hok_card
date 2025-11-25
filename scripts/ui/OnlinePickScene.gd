@@ -143,7 +143,7 @@ func _on_opponent_disconnected():
 	# 延迟返回主菜单
 	await get_tree().create_timer(2.0).timeout
 	_disconnect_network_signals()
-	get_tree().change_scene_to_file("res://scenes/main/MainMenu.tscn")
+	get_tree().change_scene_to_file("res://scenes/main/MainMenuNew.tscn")
 
 ## 游戏开始 - 切换到战斗场景
 func _on_game_started(data: Dictionary):

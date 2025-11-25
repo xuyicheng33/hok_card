@@ -237,7 +237,7 @@ func _on_start_game_pressed():
 ## 返回主菜单
 func _on_back_pressed():
 	NetworkManager.disconnect_from_server()
-	get_tree().change_scene_to_file("res://scenes/main/MainMenu.tscn")
+	get_tree().change_scene_to_file("res://scenes/main/MainMenuNew.tscn")
 
 ## 网络事件处理
 func _on_connected_to_server():

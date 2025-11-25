@@ -13,4 +13,4 @@ func _ready():
 ## 返回按钮事件处理
 func _on_back_button_pressed():
 	print("返回主菜单")
-	get_tree().change_scene_to_file("res://scenes/main/MainMenu.tscn")
+	get_tree().change_scene_to_file("res://scenes/main/MainMenuNew.tscn")

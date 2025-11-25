@@ -112,7 +112,7 @@ func _on_next_button_pressed():
 ## 返回主菜单按钮事件
 func _on_back_to_menu_pressed():
 	print("返回主菜单")
-	get_tree().change_scene_to_file("res://scenes/main/MainMenu.tscn")
+	get_tree().change_scene_to_file("res://scenes/main/MainMenuNew.tscn")
 
 ## 处理键盘输入
 func _unhandled_input(event):
