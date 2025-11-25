@@ -216,7 +216,7 @@ func _create_card_from_hero(hero: Dictionary) -> Card:
 		card.health = full_card.max_health
 		card.attack = full_card.attack
 		card.armor = full_card.armor
-		card.portrait = full_card.portrait
+		card.card_image = full_card.card_image
 		card.skill_name = full_card.skill_name
 		card.skill_cost = full_card.skill_cost
 	return card
