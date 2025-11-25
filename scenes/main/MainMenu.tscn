@@ -108,44 +108,44 @@ size_flags_vertical = 4
 [node name="StartGameButton" type="Button" parent="Background/MainContainer/ContentArea/MenuButtonsArea/MenuButtons"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_colors/font_hover_color = Color(0.4, 1, 0.9, 1)
 theme_override_colors/font_color = Color(0.3, 0.9, 1, 1)
 theme_override_colors/font_pressed_color = Color(0.2, 0.7, 0.8, 1)
+theme_override_colors/font_hover_color = Color(0.4, 1, 0.9, 1)
 theme_override_font_sizes/font_size = 20
 text = "🌐 在线对战"
 
 [node name="BattleButton" type="Button" parent="Background/MainContainer/ContentArea/MenuButtonsArea/MenuButtons"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_colors/font_hover_color = Color(1, 0.8, 0.8, 1)
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_pressed_color = Color(1, 0.6, 0.6, 1)
+theme_override_colors/font_hover_color = Color(1, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
 text = "战斗测试"
 
 [node name="CardShowcaseButton" type="Button" parent="Background/MainContainer/ContentArea/MenuButtonsArea/MenuButtons"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_colors/font_hover_color = Color(0.8, 0.9, 1, 1)
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_pressed_color = Color(0.6, 0.8, 1, 1)
+theme_override_colors/font_hover_color = Color(0.8, 0.9, 1, 1)
 theme_override_font_sizes/font_size = 18
 text = "卡牌展示"
 
 [node name="SettingsButton" type="Button" parent="Background/MainContainer/ContentArea/MenuButtonsArea/MenuButtons"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_colors/font_hover_color = Color(0.8, 0.9, 1, 1)
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_pressed_color = Color(0.6, 0.8, 1, 1)
+theme_override_colors/font_hover_color = Color(0.8, 0.9, 1, 1)
 theme_override_font_sizes/font_size = 18
 text = "设置"
 
 [node name="ExitButton" type="Button" parent="Background/MainContainer/ContentArea/MenuButtonsArea/MenuButtons"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_colors/font_hover_color = Color(1, 0.6, 0.6, 1)
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_pressed_color = Color(1, 0.4, 0.4, 1)
+theme_override_colors/font_hover_color = Color(1, 0.6, 0.6, 1)
 theme_override_font_sizes/font_size = 18
 text = "退出游戏"

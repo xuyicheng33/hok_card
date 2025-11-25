@@ -1,0 +1,95 @@
+[gd_scene load_steps=10 format=3 uid="uid://c7njk2m8yp3qg"]
+
+[ext_resource type="Texture2D" uid="uid://4gl26yctmkw5" path="res://新主菜单UI/卡牌鉴赏.png" id="1_cards"]
+[ext_resource type="Script" uid="uid://cv5txvvcl7e4s" path="res://scripts/ui/MainMenuNew.gd" id="2_script"]
+[ext_resource type="Texture2D" uid="uid://df5y7bse5hjwe" path="res://新主菜单UI/在线对战.png" id="3_online"]
+[ext_resource type="Script" uid="uid://bwi8duxhfpbhy" path="res://scripts/ui/PixelPerfectButton.gd" id="4_pixel_btn"]
+[ext_resource type="Texture2D" uid="uid://bq8f8cq2nabm4" path="res://新主菜单UI/玩法教学.png" id="5_tutorial"]
+[ext_resource type="Texture2D" uid="uid://ca80etn6h0sdf" path="res://新主菜单UI/战斗测试.png" id="6_battle"]
+[ext_resource type="Texture2D" uid="uid://b8jxxt5pn8h1w" path="res://新主菜单UI/设置.png" id="7_settings"]
+[ext_resource type="Texture2D" uid="uid://dut2vosb4lr8q" path="res://新主菜单UI/退出游戏.png" id="8_exit"]
+[ext_resource type="Texture2D" uid="uid://b5pokjwttkjm5" path="res://assets/images/backgrounds/main_menu_bg.jpg" id="9_bg"]
+
+[node name="MainMenuNew" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_script")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -400.0
+offset_right = -100.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(1.05, 1.05)
+texture = ExtResource("9_bg")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="OnlineBattleBtn" type="TextureButton" parent="."]
+layout_mode = 0
+offset_left = 805.00006
+offset_top = 295.0
+offset_right = 2853.0
+offset_bottom = 1127.0
+rotation = -0.05235988
+scale = Vector2(0.35, 0.35)
+texture_normal = ExtResource("3_online")
+script = ExtResource("4_pixel_btn")
+
+[node name="TutorialBtn" type="TextureButton" parent="."]
+layout_mode = 0
+offset_left = 778.0001
+offset_top = 588.00006
+offset_right = 2826.0
+offset_bottom = 1408.0
+scale = Vector2(0.17, 0.17)
+texture_normal = ExtResource("5_tutorial")
+script = ExtResource("4_pixel_btn")
+
+[node name="BattleTestBtn" type="TextureButton" parent="."]
+layout_mode = 0
+offset_left = 1142.0001
+offset_top = 551.0
+offset_right = 3190.0
+offset_bottom = 1411.0
+scale = Vector2(0.17, 0.17)
+texture_normal = ExtResource("6_battle")
+script = ExtResource("4_pixel_btn")
+
+[node name="SettingsBtn" type="TextureButton" parent="."]
+layout_mode = 0
+offset_left = 768.0
+offset_top = 776.0
+offset_right = 2816.0
+offset_bottom = 1664.0
+scale = Vector2(0.17, 0.17)
+texture_normal = ExtResource("7_settings")
+script = ExtResource("4_pixel_btn")
+
+[node name="ExitBtn" type="TextureButton" parent="."]
+layout_mode = 0
+offset_left = 1119.0
+offset_top = 749.99994
+offset_right = 3167.0
+offset_bottom = 1586.0
+scale = Vector2(0.17, 0.17)
+texture_normal = ExtResource("8_exit")
+script = ExtResource("4_pixel_btn")
+
+[node name="CardShowcaseBtn" type="TextureButton" parent="."]
+layout_mode = 0
+offset_left = 1468.0
+offset_top = 246.00002
+offset_right = 2674.0
+offset_bottom = 2294.0
+scale = Vector2(0.3, 0.3)
+texture_normal = ExtResource("1_cards")
+script = ExtResource("4_pixel_btn")
