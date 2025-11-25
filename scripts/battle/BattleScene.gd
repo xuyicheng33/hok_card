@@ -2901,6 +2901,11 @@ func _on_craft_equipment_pressed():
 			message_system.add_message("金币不足（需要10金币）", "system")
 		return
 	
+	# 清除装备选择模式（互斥）
+	if is_selecting_equipment_target:
+		is_selecting_equipment_target = false
+		pending_equipment = {}
+	
 	# 进入合成选择模式
 	is_selecting_craft_target = true
 	if message_system:
@@ -3157,6 +3162,11 @@ func _on_equipment_selected(equipment: Dictionary, overlay: Control):
 	
 	# 关闭选择面板
 	overlay.queue_free()
+	
+	# 清除合成选择模式（互斥）
+	if is_selecting_craft_target:
+		is_selecting_craft_target = false
+		_clear_all_highlights()
 	
 	# 进入装备选择模式
 	is_selecting_equipment_target = true
