@@ -702,6 +702,10 @@ func connect_battle_manager_signals():
 			NetworkManager.equipment_drawn.connect(_on_equipment_drawn)
 		if not NetworkManager.item_equipped.is_connected(_on_item_equipped):
 			NetworkManager.item_equipped.connect(_on_item_equipped)
+		if not NetworkManager.equipment_crafted.is_connected(_on_equipment_crafted_ui):
+			NetworkManager.equipment_crafted.connect(_on_equipment_crafted_ui)
+		if not NetworkManager.opponent_crafted.is_connected(_on_opponent_crafted_ui):
+			NetworkManager.opponent_crafted.connect(_on_opponent_crafted_ui)
 		print("装备系统信号连接完成")
 	
 	# 🔨 连接装备合成信号
@@ -1081,6 +1085,7 @@ func create_default_online_cards():
 			
 			# 🎯 用服务器数据覆盖动态属性
 			card.card_id = server_id
+			card.id = server_id  # 设置实例ID（用于装备等操作）
 			# 如果服务器发送的health与max_health不同（已受伤），则覆盖health
 			var server_health = card_data.get("health", card.max_health)
 			if server_health != card.max_health:
@@ -2993,6 +2998,53 @@ func _on_craft_failed(error_message: String):
 	# 显示错误消息
 	if message_system:
 		message_system.add_message("合成失败: %s" % error_message, "system")
+
+## 🔨 处理装备合成成功（直接从NetworkManager接收，更新UI）
+func _on_equipment_crafted_ui(craft_data: Dictionary):
+	var hero_id = craft_data.get("hero_id", "")
+	var crafted_equip = craft_data.get("crafted_equipment", {})
+	
+	print("🎨 [UI] 装备合成成功，更新实体显示: ", hero_id)
+	print("🎨 [UI] 合成装备数据: ", crafted_equip)
+	
+	# 找到对应的实体并更新显示
+	# 注意：BattleManager已经更新了card数据，这里只负责刷新UI
+	var entity = _find_entity_by_card_id(hero_id)
+	if entity and is_instance_valid(entity):
+		var card = entity.get_card()
+		if card:
+			print("🎨 [UI] 找到卡牌: %s, 当前装备数: %d" % [card.card_name, card.equipment.size() if card.equipment else 0])
+			if card.equipment:
+				for i in range(card.equipment.size()):
+					var eq = card.equipment[i]
+					print("🎨 [UI]   装备%d: %s (icon=%s, category=%s)" % [i, eq.get("name", "?"), eq.get("icon", "无"), eq.get("category", "?")])
+			
+			# 只更新UI显示，不修改数据（数据已由BattleManager更新）
+			entity.update_equipment_display()
+			entity.update_display()
+			print("🎨 [UI] 实体显示已更新: %s" % card.card_name)
+	else:
+		print("⚠️ [UI] 未找到实体: %s" % hero_id)
+
+## 🔨 处理对手合成装备（更新敌方卡牌UI）
+func _on_opponent_crafted_ui(craft_data: Dictionary):
+	var hero_id = craft_data.get("hero_id", "")
+	var crafted_equip = craft_data.get("crafted_equipment", {})
+	
+	print("🎨 [UI] 对手合成装备，更新敌方实体显示: %s" % hero_id)
+	
+	# 找到对应的敌方实体并更新显示
+	var entity = _find_entity_by_card_id(hero_id)
+	if entity and is_instance_valid(entity):
+		var card = entity.get_card()
+		if card:
+			print("🎨 [UI] 找到敌方卡牌: %s, 当前装备数: %d" % [card.card_name, card.equipment.size() if card.equipment else 0])
+			# 数据已由BattleManager更新，这里只刷新UI
+			entity.update_equipment_display()
+			entity.update_display()
+			print("🎨 [UI] 敌方实体显示已更新: %s" % card.card_name)
+	else:
+		print("⚠️ [UI] 未找到敌方实体: %s" % hero_id)
 
 ## 📦 显示装备选择面板（3选1）
 func _show_equipment_selection_panel(equipment_options: Array):

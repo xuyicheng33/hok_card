@@ -1853,10 +1853,13 @@ func _on_equipment_crafted(craft_data: Dictionary):
 	
 	print("\n🔨═══════════════════════════════════════════════════════")
 	print("   装备合成成功！")
-	print("   英雄ID: %s" % hero_id)
-	print("   合成装备: %s" % crafted_equip.get("name", "未知"))
-	print("   移除材料: %s" % removed_materials)
-	print("   剩余金币: 💰%d" % remaining_gold)
+	print("   英雄ID: ", hero_id)
+	print("   合成装备: ", crafted_equip.get("name", "未知"))
+	print("   合成装备完整数据: ", crafted_equip)
+	print("   icon字段: ", crafted_equip.get("icon", "无icon字段"))
+	print("   category字段: ", crafted_equip.get("category", "无category字段"))
+	print("   移除材料: ", removed_materials)
+	print("   剩余金币: 💰", remaining_gold)
 	print("   新属性: 生命%d/%d 攻击%d 护甲%d" % [
 		hero_stats.get("health", 0),
 		hero_stats.get("max_health", 0),
@@ -1940,9 +1943,65 @@ func _on_craft_failed(error_message: String):
 	craft_failed_event.emit(error_message)
 
 ## 🔨 处理对手合成装备通知
-func _on_opponent_crafted(team: String):
+func _on_opponent_crafted(craft_data: Dictionary):
 	if not is_online_mode:
 		return
 	
-	print("🔨 对手合成了装备 (队伍: %s)" % team)
-	# TODO: 可以显示一个简单的通知，不透露具体内容
+	var team = craft_data.get("team", "")
+	var hero_id = craft_data.get("hero_id", "")
+	var crafted_equip = craft_data.get("crafted_equipment", {})
+	var removed_materials = craft_data.get("removed_materials", [])
+	var hero_stats = craft_data.get("hero_stats", {})
+	
+	print("🔨 对手合成了装备 (队伍: %s, 英雄: %s, 装备: %s)" % [team, hero_id, crafted_equip.get("name", "未知")])
+	
+	# 更新敌方英雄卡牌属性和装备
+	var card_to_update = null
+	for card in enemy_cards:
+		if card.id == hero_id:
+			card_to_update = card
+			break
+	
+	if card_to_update:
+		# 更新卡牌属性
+		card_to_update.health = hero_stats.get("health", card_to_update.health)
+		card_to_update.max_health = hero_stats.get("max_health", card_to_update.max_health)
+		card_to_update.attack = hero_stats.get("attack", card_to_update.attack)
+		card_to_update.armor = hero_stats.get("armor", card_to_update.armor)
+		card_to_update.crit_rate = hero_stats.get("crit_rate", card_to_update.crit_rate)
+		card_to_update.crit_damage = hero_stats.get("crit_damage", card_to_update.crit_damage)
+		card_to_update.dodge_rate = hero_stats.get("dodge_rate", card_to_update.dodge_rate)
+		card_to_update.shield = hero_stats.get("shield", 0)
+		
+		# 更新装备列表（移除材料，添加新装备）
+		if not card_to_update.equipment:
+			card_to_update.equipment = []
+		
+		# 精确移除材料装备
+		var to_remove_count = {}
+		for material_id in removed_materials:
+			if not to_remove_count.has(material_id):
+				to_remove_count[material_id] = 0
+			to_remove_count[material_id] += 1
+		
+		var new_equipment_list = []
+		for equip in card_to_update.equipment:
+			var equip_id = equip.get("id", "")
+			if to_remove_count.has(equip_id) and to_remove_count[equip_id] > 0:
+				to_remove_count[equip_id] -= 1
+			else:
+				new_equipment_list.append(equip)
+		
+		new_equipment_list.append(crafted_equip)
+		card_to_update.equipment = new_equipment_list
+		
+		print("✅ 已更新对手英雄 %s 的属性和装备" % card_to_update.card_name)
+		
+		# 更新UI显示
+		if entity_card_map.has(card_to_update):
+			var card_entity = entity_card_map[card_to_update]
+			if card_entity and is_instance_valid(card_entity):
+				card_entity.update_display()
+				print("🎨 已更新对手 %s 的UI显示" % card_to_update.card_name)
+	else:
+		print("⚠️ 未找到对手英雄ID: %s" % hero_id)

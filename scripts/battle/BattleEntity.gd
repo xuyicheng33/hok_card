@@ -352,6 +352,7 @@ func create_battle_info_ui(parent):
 ## 更新装备显示
 func update_equipment_display():
 	if not equipment_container or not is_instance_valid(equipment_container):
+		print("⚠️ 装备容器无效")
 		return
 	
 	# 清空现有图标
@@ -360,26 +361,35 @@ func update_equipment_display():
 	
 	# 如果有装备，添加图标
 	if card_data and card_data.equipment and card_data.equipment.size() > 0:
+		print("🎒 更新装备显示: %s 装备了 %d 件装备" % [card_data.card_name, card_data.equipment.size()])
 		for equip in card_data.equipment:
+			print("   📦 处理装备: %s (icon=%s, category=%s)" % [equip.get("name", "?"), equip.get("icon", "无"), equip.get("category", "?")])
 			var equip_icon = create_equipment_icon(equip)
 			if equip_icon:
 				equipment_container.add_child(equip_icon)
-		print("🎒 更新装备显示: %s 装备了 %d 件装备" % [card_data.card_name, card_data.equipment.size()])
+				print("   ✅ 图标添加成功")
+			else:
+				print("   ❌ 图标创建失败")
 
 ## 创建装备小图标
 func create_equipment_icon(equipment: Dictionary) -> TextureRect:
-	if not equipment or not equipment.has("icon"):
+	if not equipment:
+		print("⚠️ 装备数据为空")
+		return null
+	if not equipment.has("icon"):
+		print("⚠️ 装备没有icon字段: ", equipment)
 		return null
 	
 	# 构建图标路径
-	var icon_path = "res://assets/equipment/%s/%s" % [
-		"攻击" if equipment.get("category") == "attack" else "防御",
-		equipment.get("icon", "")
-	]
+	var category_folder = "攻击" if equipment.get("category") == "attack" else "防御"
+	var icon_file = equipment.get("icon", "")
+	var icon_path = "res://assets/equipment/%s/%s" % [category_folder, icon_file]
+	
+	print("🖼️ 创建图标: category=%s, icon=%s, path=%s" % [equipment.get("category", "?"), icon_file, icon_path])
 	
 	# 检查文件是否存在
 	if not ResourceLoader.exists(icon_path):
-		print("⚠️ 装备图标未找到:", icon_path)
+		print("⚠️ 装备图标未找到: %s" % icon_path)
 		return null
 	
 	# 创建图标
@@ -515,6 +525,13 @@ func update_visual_state():
 		modulate = Color(1.2, 1.2, 1.0, 1.0)
 	else:
 		modulate = Color.WHITE
+
+## 设置高亮状态（用于合成选择等）
+func set_highlight(enabled: bool, highlight_color: Color = Color(1.3, 1.3, 0.8, 1.0)):
+	if enabled:
+		modulate = Color(1.0 + highlight_color.r * 0.3, 1.0 + highlight_color.g * 0.3, 1.0 + highlight_color.b * 0.3, 1.0)
+	else:
+		update_visual_state()  # 恢复正常状态
 
 ## 处理输入事件
 func _on_gui_input(event):

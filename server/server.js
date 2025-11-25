@@ -1059,6 +1059,7 @@ wss.on('connection', (ws) => {
           
           console.log('✅ 找到配方: %s', recipe.name);
           console.log('   合成费用: %d金币', recipe.cost);
+          console.log('   📦 配方icon字段: %s', recipe.icon);
           console.log('───────────────────────────────────────────────────────');
           
           // 查找英雄
@@ -1163,6 +1164,7 @@ wss.on('connection', (ws) => {
           console.log('🎉 合成成功: %s', recipe.name);
           console.log('   移除材料: %s', recipe.materials.map(m => m.name).join(', '));
           console.log('   获得装备: %s', recipe.name);
+          console.log('   📦 发送的craftedEquipment:', JSON.stringify(craftedEquipment));
           
           // 应用装备效果到英雄属性
           equipmentDB.applyEquipmentEffects(hero, craftedEquipment);
@@ -1187,11 +1189,25 @@ wss.on('connection', (ws) => {
             }
           });
           
-          // 广播给对手（只告知合成了装备，不透露具体内容）
+          // 广播给对手（包含装备信息以更新UI）
           const opponentId = isHost ? room.guest : room.host;
           sendToClient(opponentId, {
             type: 'opponent_crafted',
-            team: playerTeam
+            team: playerTeam,
+            hero_id: hero.id,
+            crafted_equipment: craftedEquipment,
+            removed_materials: material_ids,
+            hero_stats: {
+              id: hero.id,
+              health: hero.health,
+              max_health: hero.max_health,
+              attack: hero.attack,
+              armor: hero.armor,
+              crit_rate: hero.crit_rate || 0,
+              crit_damage: hero.crit_damage || 1.3,
+              dodge_rate: hero.dodge_rate || 0,
+              shield: hero.shield || 0
+            }
           });
           
           // 广播金币变化给双方

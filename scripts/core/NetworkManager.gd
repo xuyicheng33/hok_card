@@ -42,7 +42,7 @@ signal equipment_drawn(equipment_options: Array)  # 💰 装备抽取结果
 signal item_equipped(equip_data: Dictionary)  # 🎒 装备成功
 signal equipment_crafted(craft_data: Dictionary)  # 🔨 装备合成成功
 signal craft_failed(error_message: String)  # 🔨 装备合成失败
-signal opponent_crafted(team: String)  # 🔨 对手合成装备通知
+signal opponent_crafted(craft_data: Dictionary)  # 🔨 对手合成装备通知（包含完整数据）
 signal game_over(game_result: Dictionary)  # 🏆 游戏结束（服务器权威）
 
 func _ready():
@@ -230,7 +230,7 @@ func handle_server_message(message: Dictionary):
 			var remaining_gold = message.get("remaining_gold", 0)
 			var hero_stats = message.get("hero_stats", {})
 			print("🔨 装备合成成功: 英雄%s 获得%s" % [hero_id, crafted_equip.get("name", "")])
-			print("   移除材料: %s" % removed_materials)
+			print("   移除材料: %s" % str(removed_materials))
 			print("   剩余金币: %d" % remaining_gold)
 			equipment_crafted.emit(message)
 		
@@ -241,8 +241,10 @@ func handle_server_message(message: Dictionary):
 		
 		"opponent_crafted":
 			var team = message.get("team", "")
-			print("🔨 对手合成了装备 (队伍: %s)" % team)
-			opponent_crafted.emit(team)
+			var hero_id = message.get("hero_id", "")
+			var crafted_equip = message.get("crafted_equipment", {})
+			print("🔨 对手合成了装备 (队伍: %s, 英雄: %s, 装备: %s)" % [team, hero_id, crafted_equip.get("name", "未知")])
+			opponent_crafted.emit(message)
 		
 		"game_over":
 			var winner = message.get("winner", "")
