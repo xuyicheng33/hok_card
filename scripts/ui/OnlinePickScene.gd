@@ -172,11 +172,12 @@ func _create_card_grid():
 		card_grid.add_child(card_ui)
 		
 		# 保存引用
-		card_ui_instances[hero.id] = card_ui
+		var hero_id = hero.get("id", "")
+		card_ui_instances[hero_id] = card_ui
 		
 		# 检查是否已被选择
-		var is_picked_blue = blue_picks.any(func(h): return h.id == hero.id)
-		var is_picked_red = red_picks.any(func(h): return h.id == hero.id)
+		var is_picked_blue = blue_picks.any(func(h): return h.get("id") == hero_id)
+		var is_picked_red = red_picks.any(func(h): return h.get("id") == hero_id)
 		
 		if is_picked_blue:
 			card_ui.set_card_state(BanPickCardUI.CardState.SELECTED_BLUE)
@@ -187,10 +188,12 @@ func _get_all_heroes() -> Array:
 	# 合并可选英雄和已选英雄
 	var all_heroes = available_heroes.duplicate()
 	for hero in blue_picks:
-		if not all_heroes.any(func(h): return h.id == hero.id):
+		var hero_id = hero.get("id", "")
+		if not all_heroes.any(func(h): return h.get("id") == hero_id):
 			all_heroes.append(hero)
 	for hero in red_picks:
-		if not all_heroes.any(func(h): return h.id == hero.id):
+		var hero_id = hero.get("id", "")
+		if not all_heroes.any(func(h): return h.get("id") == hero_id):
 			all_heroes.append(hero)
 	return all_heroes
 
@@ -225,7 +228,7 @@ func _on_card_clicked(card_ui):
 	var hero_id = card.card_id
 	
 	# 检查是否已被选择
-	var is_picked = blue_picks.any(func(h): return h.id == hero_id) or red_picks.any(func(h): return h.id == hero_id)
+	var is_picked = blue_picks.any(func(h): return h.get("id") == hero_id) or red_picks.any(func(h): return h.get("id") == hero_id)
 	if is_picked:
 		_show_error_message("该英雄已被选择")
 		return
