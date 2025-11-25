@@ -289,6 +289,9 @@ func _on_pick_phase_started(pick_data: Dictionary):
 	print("🎯 [UI] 收到选人阶段开始信号，跳转到选人界面")
 	status_label.text = "进入英雄选择..."
 	
+	# 保存选人数据供新场景使用
+	Engine.set_meta("pick_phase_data", pick_data)
+	
 	# 切换到选人场景
 	get_tree().change_scene_to_file("res://scenes/modes/OnlinePickScene.tscn")
 

@@ -42,6 +42,13 @@ func _ready():
 	
 	# 监听窗口大小变化
 	get_viewport().size_changed.connect(_on_viewport_size_changed)
+	
+	# 🎯 检查是否有保存的选人数据（场景切换时传递）
+	if Engine.has_meta("pick_phase_data"):
+		var pick_data = Engine.get_meta("pick_phase_data")
+		Engine.remove_meta("pick_phase_data")  # 读取后清除
+		print("🎯 [UI] 从Engine读取选人数据")
+		_on_pick_phase_started(pick_data)
 
 func _connect_network_signals():
 	if not NetworkManager.pick_phase_started.is_connected(_on_pick_phase_started):
