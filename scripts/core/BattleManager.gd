@@ -49,6 +49,11 @@ var enemy_actions_used: int = 0   # 敌人已使用行动次数
 var player_gold: int = 10         # 玩家金币
 var enemy_gold: int = 10          # 敌人金币
 
+# ⭐ 奥义点系统（新增）
+var player_ougi_points: int = 0   # 玩家奥义点
+var enemy_ougi_points: int = 0    # 敌人奥义点
+var max_ougi_points: int = 5      # 奥义点上限
+
 # 战斗结果
 var battle_result: Dictionary = {}
 
@@ -69,6 +74,7 @@ signal card_died(card: Card, is_player: bool)
 signal skill_points_changed(player_points: int, enemy_points: int)
 signal actions_changed(player_actions: int, enemy_actions: int)  # 🎯 行动点变化信号
 signal gold_changed(player_gold: int, enemy_gold: int, income_data: Dictionary)  # 💰 金币变化信号
+signal ougi_points_changed(player_ougi: int, enemy_ougi: int)  # ⭐ 奥义点变化信号
 signal passive_skill_triggered(card: Card, skill_name: String, effect: String, details: Dictionary)
 signal skill_executed(skill_data: Dictionary)  # 🌐 在线模式技能执行信号
 signal craft_success_event(equipment_name: String)  # 🔨 装备合成成功信号
@@ -131,9 +137,16 @@ func reset_battle():
 	# 🎯 重置行动点
 	player_actions_used = 0
 	enemy_actions_used = 0
-	
+
+	# ⭐ 重置奥义点
+	player_ougi_points = 0
+	enemy_ougi_points = 0
+
 	# 🎯 发送初始化信号（让UI显示初始值）
 	actions_changed.emit(player_actions_used, enemy_actions_used)
+
+	# ⭐ 发送奥义点初始化信号
+	ougi_points_changed.emit(player_ougi_points, enemy_ougi_points)
 
 ## 开始战斗
 func start_battle(player_deck: Array, enemy_deck: Array) -> bool:
@@ -630,7 +643,10 @@ func _execute_skill_internal(card: Card, skill_name: String, targets: Array, is_
 	
 	# 消耗技能点
 	consume_skill_points(is_player, skill_cost)
-	
+
+	# ⭐ 增加奥义点（释放技能后）
+	add_ougi_point(is_player, "skill_used")
+
 	# TODO: 技能系统需要重构为服务器权威模式
 	# 暂时返回成功，等待重构
 	print("⚠️ 技能系统暂时简化，需要后续重构")
@@ -751,6 +767,57 @@ func get_battle_info() -> Dictionary:
 		"enemy_cards": enemy_cards.size(),
 		"state": current_state_name
 	}
+
+## ⭐ 获取奥义点（新增）
+func get_ougi_points(is_player: bool) -> int:
+	if is_player:
+		return player_ougi_points
+	else:
+		return enemy_ougi_points
+
+## ⭐ 增加奥义点（新增）
+func add_ougi_point(is_player: bool, reason: String = "skill_used"):
+	# 只在使用技能时增加奥义点（未来可能有其他来源）
+	if reason != "skill_used":
+		print("⭐ 奥义点增加被阻止：原因不是skill_used（当前: %s）" % reason)
+		return
+
+	if is_player:
+		if player_ougi_points < max_ougi_points:
+			player_ougi_points += 1
+			print("⭐ 玩家奥义点+1: %d/%d" % [player_ougi_points, max_ougi_points])
+		else:
+			print("⭐ 玩家奥义点已满: %d/%d" % [player_ougi_points, max_ougi_points])
+	else:
+		if enemy_ougi_points < max_ougi_points:
+			enemy_ougi_points += 1
+			print("⭐ 敌方奥义点+1: %d/%d" % [enemy_ougi_points, max_ougi_points])
+		else:
+			print("⭐ 敌方奥义点已满: %d/%d" % [enemy_ougi_points, max_ougi_points])
+
+	# 发送奥义点变化信号
+	ougi_points_changed.emit(player_ougi_points, enemy_ougi_points)
+
+## ⭐ 清空奥义点（新增）
+func clear_ougi_points(is_player: bool):
+	if is_player:
+		player_ougi_points = 0
+		print("⭐ 玩家奥义点已清空")
+	else:
+		enemy_ougi_points = 0
+		print("⭐ 敌方奥义点已清空")
+
+	# 发送奥义点变化信号
+	ougi_points_changed.emit(player_ougi_points, enemy_ougi_points)
+
+## ⭐ 同步奥义点（在线模式用，新增）
+func sync_ougi_points(player: int, enemy: int):
+	player_ougi_points = clamp(player, 0, max_ougi_points)
+	enemy_ougi_points = clamp(enemy, 0, max_ougi_points)
+	print("⭐ 同步奥义点: 玩家%d/5, 敌方%d/5" % [player_ougi_points, enemy_ougi_points])
+
+	# 发送奥义点变化信号
+	ougi_points_changed.emit(player_ougi_points, enemy_ougi_points)
 
 ## 更新战斗实体显示的辅助方法
 func _update_battle_entity_display(card: Card):
@@ -1062,7 +1129,26 @@ func _on_server_turn_changed(turn_data: Dictionary):
 		
 		# 发送金币变化信号
 		gold_changed.emit(player_gold, enemy_gold, gold_income_data)
-	
+
+	# ⭐ 同步奥义点（如果有的话）
+	var blue_ougi = turn_data.get("blue_ougi_points", null)
+	var red_ougi = turn_data.get("red_ougi_points", null)
+
+	if blue_ougi != null and red_ougi != null:
+		if NetworkManager.is_host:
+			# 房主视角：我方=blue，敌方=red
+			player_ougi_points = blue_ougi
+			enemy_ougi_points = red_ougi
+		else:
+			# 客户端视角：我方=red，敌方=blue
+			player_ougi_points = red_ougi
+			enemy_ougi_points = blue_ougi
+
+		print("⭐ 服务器奥义点同步: 我方⭐%d/5, 敌方⭐%d/5" % [player_ougi_points, enemy_ougi_points])
+
+		# 发送奥义点变化信号
+		ougi_points_changed.emit(player_ougi_points, enemy_ougi_points)
+
 	# 💰 如果只是金币更新，不同步其他数据
 	var is_gold_only = turn_data.get("is_gold_only", false)
 	if is_gold_only:

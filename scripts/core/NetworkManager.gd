@@ -198,6 +198,17 @@ func handle_server_message(message: Dictionary):
 		
 		"skill_points_updated":
 			print("收到技能点更新: 房主%d, 客户端%d" % [message.host_skill_points, message.guest_skill_points])
+			# ⭐ 同步奥义点（如果服务器提供）
+			if message.has("blue_ougi_points") and message.has("red_ougi_points"):
+				var blue_ougi = message.blue_ougi_points
+				var red_ougi = message.red_ougi_points
+				print("⭐ 同步奥义点: 蓝方⭐%d/5, 红方⭐%d/5" % [blue_ougi, red_ougi])
+				# 同步到BattleManager
+				if BattleManager:
+					BattleManager.sync_ougi_points(
+						blue_ougi if is_host else red_ougi,  # 我方
+						red_ougi if is_host else blue_ougi   # 敌方
+					)
 			# 直接发送到BattleManager处理
 			if has_signal("skill_points_sync"):
 				emit_signal("skill_points_sync", message)
@@ -243,6 +254,32 @@ func handle_server_message(message: Dictionary):
 			var error_msg = message.get("error", "装备失败")
 			print("❌ 装备失败: %s" % error_msg)
 			connection_error.emit("装备失败: " + error_msg)
+
+		"ougi_used":
+			# ⭐ 奥义使用成功
+			var data = message.get("data", {})
+			var hero_name = data.get("hero_name", "未知英雄")
+			var description = data.get("description", "")
+			print("⭐ 奥义发动: %s - %s" % [hero_name, description])
+
+			# 同步奥义点
+			if message.has("blue_ougi_points") and message.has("red_ougi_points"):
+				var blue_ougi = message.blue_ougi_points
+				var red_ougi = message.red_ougi_points
+				print("⭐ 奥义点清空: 蓝方⭐%d/5, 红方⭐%d/5" % [blue_ougi, red_ougi])
+				if BattleManager:
+					BattleManager.sync_ougi_points(
+						blue_ougi if is_host else red_ougi,
+						red_ougi if is_host else blue_ougi
+					)
+
+			# TODO: 添加奥义使用成功的UI反馈
+			# 例如：播放动画、显示消息等
+
+		"use_ougi_failed":
+			var error_msg = message.get("error", "奥义发动失败")
+			print("❌ 奥义发动失败: %s" % error_msg)
+			connection_error.emit("奥义发动失败: " + error_msg)
 		
 		"gold_changed":
 			var host_gold = message.get("host_gold", 0)

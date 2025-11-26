@@ -460,6 +460,10 @@ function initGameState(roomId) {
     blueGold: 10,         // 蓝方金币（房主）
     redGold: 10,          // 红方金币（客户端）
     // 注：hostGold/guestGold 已移除，通过 GoldManager 的 getter 访问
+    // ⭐ 奥义点系统（新增）
+    blueOugiPoints: 0,    // 蓝方奥义点
+    redOugiPoints: 0,     // 红方奥义点
+    maxOugiPoints: 5,     // 奥义点上限
     // 💰 阵亡补偿系统
     blueDeathCount: 0,    // 蓝方阵亡数
     redDeathCount: 0,     // 红方阵亡数
@@ -943,21 +947,32 @@ wss.on('connection', (ws) => {
                 }
                 
                 console.log('───────────────────────────────────────────────────────');
-                console.log('   技能点: 房主 %d→%d | 客户端 %d→%d', 
+                console.log('   技能点: 房主 %d→%d | 客户端 %d→%d',
                   oldHostSP, gameState.hostSkillPoints,
                   oldGuestSP, gameState.guestSkillPoints);
                 console.log('═══════════════════════════════════════════════════════');
-                
+
+                // ⭐ 增加奥义点（使用技能后）
+                const oldBlueOugi = gameState.blueOugiPoints;
+                const oldRedOugi = gameState.redOugiPoints;
+                if (isHost) {
+                  gameState.blueOugiPoints = Math.min(gameState.maxOugiPoints, gameState.blueOugiPoints + 1);
+                  console.log('⭐ [奥义点] 蓝方/房主 %d→%d (释放技能)', oldBlueOugi, gameState.blueOugiPoints);
+                } else {
+                  gameState.redOugiPoints = Math.min(gameState.maxOugiPoints, gameState.redOugiPoints + 1);
+                  console.log('⭐ [奥义点] 红方/客户端 %d→%d (释放技能)', oldRedOugi, gameState.redOugiPoints);
+                }
+
                 // 🎯 使用行动点
                 if (isHost) {
                   gameState.blueActionsUsed++;
                   const remaining = gameState.actionsPerTurn - gameState.blueActionsUsed;
-                  console.log('[行动点] 蓝方/房主 已用%d次，剩余%d次 (%d/3)', 
+                  console.log('[行动点] 蓝方/房主 已用%d次，剩余%d次 (%d/3)',
                     gameState.blueActionsUsed, remaining, gameState.blueActionsUsed);
                 } else {
                   gameState.redActionsUsed++;
                   const remaining = gameState.actionsPerTurn - gameState.redActionsUsed;
-                  console.log('[行动点] 红方/客户端 已用%d次，剩余%d次 (%d/3)', 
+                  console.log('[行动点] 红方/客户端 已用%d次，剩余%d次 (%d/3)',
                     gameState.redActionsUsed, remaining, gameState.redActionsUsed);
                 }
                 
@@ -981,7 +996,11 @@ wss.on('connection', (ws) => {
                   sendToClient(playerId, {
                     type: 'skill_points_updated',
                     host_skill_points: gameState.hostSkillPoints,
-                    guest_skill_points: gameState.guestSkillPoints
+                    guest_skill_points: gameState.guestSkillPoints,
+                    // ⭐ 附加奥义点信息
+                    blue_ougi_points: gameState.blueOugiPoints,
+                    red_ougi_points: gameState.redOugiPoints,
+                    max_ougi_points: gameState.maxOugiPoints
                   });
                 });
                 
@@ -1448,7 +1467,158 @@ wss.on('connection', (ws) => {
           // 🔍 校验金币一致性
           GoldValidator.validate(gameState, '装备合成后');
           console.log('═══════════════════════════════════════════════════════\n');
-          
+
+        } else if (data.action === 'use_ougi') {
+          // ⭐ 发动奥义技能
+          const { hero_id } = data.data;
+          const isHost = (clientId === room.host);
+          const gameState = room.gameState;
+
+          console.log('\n⭐══════════════════════════════════════════════════════');
+          console.log('⭐ [发动奥义]');
+          console.log('   玩家:', isHost ? '房主/蓝方' : '客户端/红方');
+          console.log('   英雄ID:', hero_id);
+
+          // 🔒 验证回合
+          const currentTurn = gameState.currentTurn || 1;
+          const isHostTurn = (currentTurn % 2 === 1);
+          const isPlayerTurn = (isHost === isHostTurn);
+
+          if (!isPlayerTurn) {
+            console.error('[奥义失败] 不是该玩家的回合');
+            sendToClient(clientId, {
+              type: 'use_ougi_failed',
+              error: '不是你的回合'
+            });
+            return;
+          }
+
+          // 🔒 检查奥义点是否满5
+          const ougiPoints = isHost ? gameState.blueOugiPoints : gameState.redOugiPoints;
+          if (ougiPoints < 5) {
+            console.error('[奥义失败] 奥义点不足:', ougiPoints, '/5');
+            sendToClient(clientId, {
+              type: 'use_ougi_failed',
+              error: `奥义点不足 (当前${ougiPoints}/5)`
+            });
+            return;
+          }
+
+          // 🔍 查找英雄
+          const myTeam = isHost ? gameState.blueTeam : gameState.redTeam;
+          const hero = myTeam.find(c => c.id === hero_id);
+
+          if (!hero) {
+            console.error('[奥义失败] 英雄未找到:', hero_id);
+            sendToClient(clientId, {
+              type: 'use_ougi_failed',
+              error: '英雄未找到'
+            });
+            return;
+          }
+
+          if (hero.health <= 0) {
+            console.error('[奥义失败] 英雄已死亡:', hero.card_name);
+            sendToClient(clientId, {
+              type: 'use_ougi_failed',
+              error: '该英雄已阵亡'
+            });
+            return;
+          }
+
+          console.log('✅ 找到英雄: %s (ID: %s)', hero.card_name, hero.id);
+
+          // ⭐ 清空奥义点
+          const oldOugi = ougiPoints;
+          if (isHost) {
+            gameState.blueOugiPoints = 0;
+          } else {
+            gameState.redOugiPoints = 0;
+          }
+          console.log('⭐ 奥义点清空: %d → 0', oldOugi);
+
+          // TODO: 实际的奥义技能效果（暂时占位）
+          const ougiResult = {
+            success: true,
+            hero_id: hero.id,
+            hero_name: hero.card_name,
+            effect_type: 'ougi_placeholder',
+            description: `${hero.card_name} 发动了奥义技能！（效果待实现）`
+          };
+
+          console.log('⭐ 奥义效果占位: %s', ougiResult.description);
+
+          // 📢 广播奥义使用结果
+          room.players.forEach(playerId => {
+            sendToClient(playerId, {
+              type: 'ougi_used',
+              data: ougiResult,
+              from: clientId,
+              // ⭐ 附加奥义点信息
+              blue_ougi_points: gameState.blueOugiPoints,
+              red_ougi_points: gameState.redOugiPoints
+            });
+          });
+
+          // 🔄 发动奥义后直接结束回合（不需要手动end_turn）
+          console.log('⭐ 奥义发动，自动结束回合');
+
+          // 切换回合
+          gameState.currentTurn++;
+          gameState.currentPlayer = (gameState.currentPlayer === 'host') ? 'guest' : 'host';
+
+          // 重置行动点
+          gameState.blueActionsUsed = 0;
+          gameState.redActionsUsed = 0;
+
+          // 💰 结算回合金币（利息系统）
+          const goldMgr = room.goldManager;
+          const goldIncomeData = {};
+          if (goldMgr) {
+            const blueIncome = goldMgr.calculateIncomeForTurn('blue', gameState.currentTurn);
+            const redIncome = goldMgr.calculateIncomeForTurn('red', gameState.currentTurn);
+
+            goldMgr.addGold('blue', blueIncome.total);
+            goldMgr.addGold('red', redIncome.total);
+
+            const goldState = goldMgr.getState();
+            goldIncomeData.blue = blueIncome;
+            goldIncomeData.red = redIncome;
+
+            console.log('💰 回合金币结算:');
+            console.log('   蓝方: +%d金币 (基础:%d 利息:%d) → 💰%d',
+              blueIncome.total, blueIncome.base, blueIncome.interest, goldState.blueGold);
+            console.log('   红方: +%d金币 (基础:%d 利息:%d) → 💰%d',
+              redIncome.total, redIncome.base, redIncome.interest, goldState.redGold);
+          }
+
+          // 📢 广播回合切换（包含奥义点信息）
+          const newIsHostTurn = (gameState.currentTurn % 2 === 1);
+          room.players.forEach(playerId => {
+            const isPlayerHost = (playerId === room.host);
+            const isMyNewTurn = (isPlayerHost === newIsHostTurn);
+
+            sendToClient(playerId, {
+              type: 'turn_changed',
+              turn: gameState.currentTurn,
+              is_my_turn: isMyNewTurn,
+              host_skill_points: gameState.hostSkillPoints,
+              guest_skill_points: gameState.guestSkillPoints,
+              blue_actions_used: gameState.blueActionsUsed,
+              red_actions_used: gameState.redActionsUsed,
+              // 💰 金币信息
+              host_gold: goldMgr ? goldMgr.getGold('blue') : 10,
+              guest_gold: goldMgr ? goldMgr.getGold('red') : 10,
+              gold_income: goldIncomeData,
+              // ⭐ 奥义点信息
+              blue_ougi_points: gameState.blueOugiPoints,
+              red_ougi_points: gameState.redOugiPoints,
+              max_ougi_points: gameState.maxOugiPoints
+            });
+          });
+
+          console.log('⭐══════════════════════════════════════════════════════\n');
+
         } else if (data.action === 'end_turn') {
           // 🎯 服务器权威管理回合切换
           const gameState = room.gameState;

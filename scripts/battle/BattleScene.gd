@@ -51,6 +51,11 @@ var enemy_actions_label: Label
 # 💰 金币显示组件（新增）
 var gold_info_label: Label
 
+# ⭐ 奥义点显示组件（新增）
+var player_ougi_label: Label
+var enemy_ougi_label: Label
+var use_ougi_button: Button  # 发动奥义按钮
+
 # 战斗状态
 var player_entities: Array = []
 var enemy_entities: Array = []
@@ -64,6 +69,9 @@ var pending_equipment: Dictionary = {}  # 待装备的装备数据
 
 # 🔨 装备合成模式
 var is_selecting_craft_target: bool = false  # 是否在选择合成目标卡牌
+
+# ⭐ 奥义选择模式
+var is_selecting_ougi_target: bool = false  # 是否在选择奥义目标卡牌
 
 # 战斗模式支持
 var battle_mode: String = "2v2"  # 默认2v2模式
@@ -293,6 +301,11 @@ func get_node_references():
 	# 💰 连接金币变化信号
 	if BattleManager and not BattleManager.gold_changed.is_connected(_on_gold_changed):
 		BattleManager.gold_changed.connect(_on_gold_changed)
+
+	# ⭐ 连接奥义点变化信号
+	if BattleManager and BattleManager.has_signal("ougi_points_changed"):
+		if not BattleManager.ougi_points_changed.is_connected(_on_ougi_points_changed):
+			BattleManager.ougi_points_changed.connect(_on_ougi_points_changed)
 	
 	# 连接被动技能触发信号
 	if BattleManager and not BattleManager.passive_skill_triggered.is_connected(_on_passive_skill_triggered):
@@ -560,6 +573,23 @@ func create_battle_area_content():
 	gold_info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	gold_info_label.add_theme_color_override("font_color", Color(1.0, 0.84, 0.0))  # 金色
 	skill_points_container.add_child(gold_info_label)
+
+	# ⭐ 奥义点显示（新增）
+	player_ougi_label = Label.new()
+	player_ougi_label.text = "我方奥义: ⭐0/5"
+	player_ougi_label.add_theme_font_override("font", chinese_font)
+	player_ougi_label.add_theme_font_size_override("font_size", 16)
+	player_ougi_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	player_ougi_label.add_theme_color_override("font_color", Color(0.6, 0.8, 1.0))  # 浅蓝色
+	skill_points_container.add_child(player_ougi_label)
+
+	enemy_ougi_label = Label.new()
+	enemy_ougi_label.text = "敌方奥义: ⭐0/5"
+	enemy_ougi_label.add_theme_font_override("font", chinese_font)
+	enemy_ougi_label.add_theme_font_size_override("font_size", 16)
+	enemy_ougi_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	enemy_ougi_label.add_theme_color_override("font_color", Color(1.0, 0.6, 0.6))  # 浅红色
+	skill_points_container.add_child(enemy_ougi_label)
 	
 	# 战斗状态显示
 	battle_status_label = Label.new()
@@ -601,6 +631,14 @@ func create_battle_area_content():
 	use_skill_button.text = "发动技能"
 	use_skill_button.custom_minimum_size = Vector2(120, 48)
 	left_buttons.add_child(use_skill_button)
+
+	# ⭐ 发动奥义按钮
+	use_ougi_button = Button.new()
+	use_ougi_button.text = "⭐发动奥义⭐"
+	use_ougi_button.custom_minimum_size = Vector2(120, 48)
+	use_ougi_button.disabled = true  # 初始禁用
+	use_ougi_button.add_theme_color_override("font_color", Color(1.0, 0.84, 0.0))  # 金色
+	left_buttons.add_child(use_ougi_button)
 	
 	# 取消技能按钮
 	cancel_skill_button = Button.new()
@@ -646,6 +684,10 @@ func create_battle_area_content():
 	use_skill_button.pressed.connect(_on_use_skill_pressed)
 	detail_button.pressed.connect(_on_detail_button_pressed)
 	back_to_menu_button.pressed.connect(_on_back_to_menu_pressed)
+
+	# 连接奥义按钮信号
+	if use_ougi_button:
+		use_ougi_button.pressed.connect(_on_use_ougi_pressed)
 	
 	# 连接取消技能按钮信号
 	if cancel_skill_button:
@@ -1508,7 +1550,35 @@ func clear_battle_entities():
 ## 卡牌点击处理
 func _on_card_clicked(entity):
 	print("卡牌被点击: %s (is_player: %s)" % [entity.get_card().card_name, entity.is_player()])
-	
+
+	# ⭐ 奥义选择模式：点击己方卡牌发动奥义
+	if is_selecting_ougi_target:
+		if entity.is_player() and not entity.get_card().is_dead():
+			var card = entity.get_card()
+			print("⭐ 选择英雄 %s 发动奥义" % card.card_name)
+
+			# 发送奥义请求到服务器
+			if BattleManager.is_online_mode and NetworkManager:
+				NetworkManager.send_game_action("use_ougi", {
+					"hero_id": card.id
+				})
+				update_battle_status("⭐ 正在发动 %s 的奥义..." % card.card_name)
+			else:
+				# 单机模式占位
+				print("⭐ [占位] %s 发动奥义技能（单机模式暂未实现）" % card.card_name)
+				update_battle_status("⭐ %s 发动了奥义！（占位）" % card.card_name)
+
+			# 重置选择模式
+			is_selecting_ougi_target = false
+			# 清除高亮
+			for e in player_cards:
+				if e and is_instance_valid(e):
+					e.set_targetable(false)
+		else:
+			if message_system:
+				message_system.add_message("请点击己方存活的英雄卡牌", "system")
+		return
+
 	# 🔨 装备合成模式：点击己方卡牌进行合成
 	if is_selecting_craft_target:
 		if entity.is_player():
@@ -2119,6 +2189,39 @@ func _on_use_skill_pressed():
 	
 	use_player_skill()
 
+## ⭐ 发动奥义按钮按下
+func _on_use_ougi_pressed():
+	print("⭐ 奥义按钮被点击")
+
+	# 🌐 在线模式：检查是否是我的回合
+	if BattleManager.is_online_mode:
+		var current_turn_num = BattleManager.current_turn
+		var is_host_turn = (current_turn_num % 2 == 1)
+		var is_my_turn = (NetworkManager.is_host == is_host_turn)
+
+		if not is_my_turn:
+			update_battle_status("不是你的回合！")
+			print("🌐 阻止奥义：当前是对手回合")
+			return
+
+	# 检查奥义点是否满5
+	var player_ougi = BattleManager.get_ougi_points(true)
+	if player_ougi < 5:
+		update_battle_status("奥义点不足(%d/5)" % player_ougi)
+		print("⭐ 阻止奥义：奥义点不足 %d/5" % player_ougi)
+		return
+
+	# 进入选择奥义目标模式
+	is_selecting_ougi_target = true
+	update_battle_status("⭐ 选择要发动奥义的己方英雄卡牌")
+	print("⭐ 进入奥义目标选择模式")
+
+	# 高亮己方存活卡牌
+	for entity in player_cards:
+		if entity and is_instance_valid(entity) and not entity.get_card().is_dead():
+			entity.set_targetable(true)
+			print("  → 高亮卡牌: %s" % entity.get_card().card_name)
+
 func _on_cancel_skill_pressed():
 	# 取消技能释放
 	reset_selection()
@@ -2675,6 +2778,58 @@ func _on_gold_changed(player_gold: int, enemy_gold: int, income_data: Dictionary
 		print("  → 金币标签更新: \"%s\" → \"%s\"" % [old_text, gold_info_label.text])
 	else:
 		print("  ⚠️ 金币标签无效！")
+
+## ⭐ 奥义点变化处理（新增）
+func _on_ougi_points_changed(player_ougi: int, enemy_ougi: int):
+	print("⭐ [UI更新] 奥义点变化: 我方⭐%d/5, 敌方⭐%d/5" % [player_ougi, enemy_ougi])
+
+	# 更新我方奥义点显示
+	if player_ougi_label and is_instance_valid(player_ougi_label):
+		player_ougi_label.text = "我方奥义: ⭐%d/5" % player_ougi
+		# 满5点时变金色并闪烁效果
+		if player_ougi >= 5:
+			player_ougi_label.add_theme_color_override("font_color", Color(1.0, 0.84, 0.0))  # 金色
+		else:
+			player_ougi_label.add_theme_color_override("font_color", Color(0.6, 0.8, 1.0))  # 浅蓝色
+
+	# 更新敌方奥义点显示
+	if enemy_ougi_label and is_instance_valid(enemy_ougi_label):
+		enemy_ougi_label.text = "敌方奥义: ⭐%d/5" % enemy_ougi
+		if enemy_ougi >= 5:
+			enemy_ougi_label.add_theme_color_override("font_color", Color(1.0, 0.84, 0.0))  # 金色
+		else:
+			enemy_ougi_label.add_theme_color_override("font_color", Color(1.0, 0.6, 0.6))  # 浅红色
+
+	# 更新奥义按钮状态
+	update_ougi_button_state()
+
+## ⭐ 更新奥义按钮状态
+func update_ougi_button_state():
+	if not use_ougi_button or not is_instance_valid(use_ougi_button):
+		return
+
+	# 🌐 在线模式：检查是否是我的回合
+	if BattleManager.is_online_mode:
+		var current_turn_num = BattleManager.current_turn
+		var is_host_turn = (current_turn_num % 2 == 1)
+		var is_my_turn = (NetworkManager.is_host == is_host_turn)
+
+		if not is_my_turn:
+			use_ougi_button.disabled = true
+			use_ougi_button.text = "对手回合"
+			return
+
+	# 检查奥义点是否满5
+	var player_ougi = BattleManager.get_ougi_points(true) if BattleManager else 0
+
+	if player_ougi >= 5:
+		use_ougi_button.disabled = false
+		use_ougi_button.text = "⭐发动奥义⭐"
+		use_ougi_button.modulate = Color(1.0, 1.0, 1.0)  # 正常颜色
+	else:
+		use_ougi_button.disabled = true
+		use_ougi_button.text = "奥义未满(%d/5)" % player_ougi
+		use_ougi_button.modulate = Color(0.7, 0.7, 0.7)  # 灰暗
 
 ## 更新技能按钮状态
 func update_skill_button_state():
