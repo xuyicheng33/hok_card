@@ -372,7 +372,7 @@ func send_message(message: Dictionary) -> bool:
 	
 	if error != OK:
 		print("发送消息失败，错误代码: %d" % error)
-			return false
+		return false
 	
 	return true
 
