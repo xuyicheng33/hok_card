@@ -37,6 +37,7 @@ var craft_equipment_button: Button  # 🔨 合成装备按钮
 var back_to_menu_button: Button
 var detail_button: Button  # 新增详情按钮引用
 var message_system  # 消息系统
+var sync_state_button: Button  # 🌐 手动同步状态按钮（在线模式）
 var main_battle_area  # 主战斗区域
 var message_area  # 消息区域
 
@@ -661,6 +662,13 @@ func create_battle_area_content():
 	craft_equipment_button.custom_minimum_size = Vector2(140, 48)
 	craft_equipment_button.add_theme_color_override("font_color", Color(1.0, 0.65, 0.0))  # 橙色
 	left_buttons.add_child(craft_equipment_button)
+
+	# 🌐 同步状态按钮（仅在线模式展示）
+	if BattleManager.is_online_mode:
+		sync_state_button = Button.new()
+		sync_state_button.text = "同步状态"
+		sync_state_button.custom_minimum_size = Vector2(120, 48)
+		left_buttons.add_child(sync_state_button)
 	
 	# 右侧按钮组
 	var right_buttons = HBoxContainer.new()
@@ -700,6 +708,10 @@ func create_battle_area_content():
 	# 连接合成装备按钮信号
 	if craft_equipment_button:
 		craft_equipment_button.pressed.connect(_on_craft_equipment_pressed)
+
+	# 连接同步状态按钮信号
+	if sync_state_button:
+		sync_state_button.pressed.connect(_on_sync_state_pressed)
 
 func create_message_area_content():
 	# 消息区域标题
@@ -759,6 +771,13 @@ func connect_battle_manager_signals():
 			NetworkManager.equipment_crafted.connect(_on_equipment_crafted_ui)
 		if not NetworkManager.opponent_crafted.is_connected(_on_opponent_crafted_ui):
 			NetworkManager.opponent_crafted.connect(_on_opponent_crafted_ui)
+		# 状态同步与错误提示
+		if not NetworkManager.full_state_received.is_connected(_on_full_state_received_ui):
+			NetworkManager.full_state_received.connect(_on_full_state_received_ui)
+		if not NetworkManager.state_request_failed.is_connected(_on_state_request_failed):
+			NetworkManager.state_request_failed.connect(_on_state_request_failed)
+		if not NetworkManager.connection_error.is_connected(_on_network_error):
+			NetworkManager.connection_error.connect(_on_network_error)
 		print("装备系统信号连接完成")
 	
 	# 🔨 连接装备合成信号
@@ -770,6 +789,34 @@ func connect_battle_manager_signals():
 		print("装备合成信号连接完成")
 	
 	print("战斗管理器信号连接完成")
+
+## 手动同步服务器状态
+func _on_sync_state_pressed():
+	update_battle_status("正在同步服务器状态...")
+	if NetworkManager:
+		var ok = NetworkManager.request_full_state()
+		if ok:
+			update_battle_status("已请求同步状态，等待服务器...")
+		else:
+			update_battle_status("状态同步请求发送失败")
+
+## 收到完整状态快照的UI反馈
+func _on_full_state_received_ui(_data: Dictionary):
+	update_battle_status("已同步服务器状态")
+	if message_system:
+		message_system.add_message("已同步服务器状态", "system")
+
+## 状态同步请求失败
+func _on_state_request_failed(error_message: String):
+	update_battle_status("状态同步失败: %s" % error_message)
+	if message_system:
+		message_system.add_message("状态同步失败: %s" % error_message, "system")
+
+## 网络/操作错误提示
+func _on_network_error(error_message: String):
+	update_battle_status("操作失败: %s" % error_message)
+	if message_system:
+		message_system.add_message("操作失败: %s" % error_message, "system")
 
 ## 初始化UI
 func setup_ui():
@@ -792,7 +839,11 @@ func setup_ui():
 		update_battle_status("等待对手连接..." if NetworkManager.is_host else "等待房主操作...")
 		# 立即请求一次完整状态，确保客户端与服务器一致
 		if NetworkManager:
-			NetworkManager.request_full_state()
+			var ok = NetworkManager.request_full_state()
+			if ok:
+				update_battle_status("已请求同步状态，等待服务器...")
+			else:
+				update_battle_status("状态同步请求失败")
 		return
 	
 	# 单机模式：创建测试卡牌并开始战斗

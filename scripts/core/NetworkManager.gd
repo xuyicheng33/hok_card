@@ -45,6 +45,7 @@ signal craft_failed(error_message: String)  # 🔨 装备合成失败
 signal opponent_crafted(craft_data: Dictionary)  # 🔨 对手合成装备通知（包含完整数据）
 signal game_over(game_result: Dictionary)  # 🏆 游戏结束（服务器权威）
 signal full_state_received(state_data: Dictionary)  # 🌐 完整状态同步
+signal state_request_failed(error_message: String)  # 🌐 状态同步失败
 
 # 🎯 英雄选择系统信号
 signal pick_phase_started(pick_data: Dictionary)  # 选人阶段开始
@@ -353,6 +354,9 @@ func handle_server_message(message: Dictionary):
 			var error_msg = message.get("message", "未知错误")
 			print("服务器错误: %s" % error_msg)
 			connection_error.emit(error_msg)
+			# 如果是状态同步请求失败，转发到专用信号
+			if message.get("reason", "") == "request_state":
+				state_request_failed.emit(error_msg)
 		
 		_:
 			print("未知消息类型: %s" % message.type)
