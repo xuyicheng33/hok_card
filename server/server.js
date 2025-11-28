@@ -436,6 +436,10 @@ function initGameStateWithPicks(roomId, room, bluePicks, redPicks) {
     actionsPerTurn: 3,
     blueGold: 10,
     redGold: 10,
+    // ⭐ 奥义点系统
+    blueOugiPoints: 0,
+    redOugiPoints: 0,
+    maxOugiPoints: 5,
     blueDeathCount: 0,
     redDeathCount: 0,
     blueCompensationGiven: false,
@@ -449,9 +453,10 @@ function initGameStateWithPicks(roomId, room, bluePicks, redPicks) {
   // 创建金币管理器
   const goldManager = new GoldManager(room.gameState);
   room.goldManager = goldManager;
-  
+
   console.log('[游戏初始化]', roomId, '战斗引擎创建完成');
   console.log('💰 [金币管理器] 已创建 - 蓝方:%d, 红方:%d', goldManager.hostGold, goldManager.guestGold);
+  console.log('⭐ [奥义点初始化] 蓝方:%d, 红方:%d, 上限:%d', room.gameState.blueOugiPoints, room.gameState.redOugiPoints, room.gameState.maxOugiPoints);
   console.log('  蓝方:', blueCards.map(c => `${c.card_name}(${c.health}/${c.max_health}, ATK:${c.attack})`));
   console.log('  红方:', redCards.map(c => `${c.card_name}(${c.health}/${c.max_health}, ATK:${c.attack})`));
 }
@@ -1008,6 +1013,11 @@ wss.on('connection', (ws) => {
                 console.log('═══════════════════════════════════════════════════════');
 
                 // ⭐ 增加奥义点（使用技能后）
+                // 🔧 防御性初始化：确保奥义点字段存在
+                if (typeof gameState.blueOugiPoints !== 'number') gameState.blueOugiPoints = 0;
+                if (typeof gameState.redOugiPoints !== 'number') gameState.redOugiPoints = 0;
+                if (typeof gameState.maxOugiPoints !== 'number') gameState.maxOugiPoints = 5;
+
                 const oldBlueOugi = gameState.blueOugiPoints;
                 const oldRedOugi = gameState.redOugiPoints;
                 if (isHost) {
