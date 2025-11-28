@@ -978,21 +978,31 @@ wss.on('connection', (ws) => {
                 console.log('───────────────────────────────────────────────────────');
                 
                 // 根据技能类型显示详情
+                // 辅助函数：获取目标名称
+                const getTargetName = (res) => {
+                  if (res.target && res.target.card_name) return res.target.card_name;
+                  if (res.target_id) {
+                    const t = engine.findCard(res.target_id);
+                    return t ? t.card_name : res.target_id;
+                  }
+                  return '未知';
+                };
+
                 if (result.effect_type === 'true_damage' || result.effect_type === 'true_damage_with_armor_reduction') {
                   console.log('   伤害类型: 真实伤害');
                   if (result.armor_reduction) {
                     console.log('   护甲削减: %d', result.armor_reduction);
                   }
                   console.log('   伤害数值: %d', result.damage_amount || 0);
-                  console.log('   目标: %s', result.target ? result.target.card_name : '未知');
+                  console.log('   目标: %s', getTargetName(result));
                 } else if (result.effect_type === 'heal') {
                   console.log('   治疗数值: %d', result.heal_amount || 0);
-                  console.log('   目标: %s', result.target ? result.target.card_name : '未知');
+                  console.log('   目标: %s', getTargetName(result));
                 } else if (result.effect_type === 'shield_and_buff') {
                   console.log('   护盾数值: %d', result.shield_amount || 0);
                   console.log('   暴击率提升: +%d%%', (result.crit_rate_buff || 0) * 100);
                   console.log('   护甲提升: +%d', result.armor_buff || 0);
-                  console.log('   目标: %s', result.target ? result.target.card_name : '未知');
+                  console.log('   目标: %s', getTargetName(result));
                 } else if (result.effect_type === 'self_buff') {
                   console.log('   攻击力提升: +%d', result.attack_buff || 0);
                 } else if (result.effect_type === 'daqiao_true_damage') {
