@@ -103,6 +103,9 @@ func _connect_network_signals():
 		NetworkManager.equipment_crafted.connect(_on_equipment_crafted)
 		NetworkManager.craft_failed.connect(_on_craft_failed)
 		NetworkManager.opponent_crafted.connect(_on_opponent_crafted)
+		# 完整状态快照，用于在线模式一致性校验
+		if not NetworkManager.full_state_received.is_connected(_on_full_state_received):
+			NetworkManager.full_state_received.connect(_on_full_state_received)
 		print("已连接网络管理器信号")
 
 ## 初始化所有状态
@@ -625,6 +628,10 @@ func end_battle(is_victory: bool):
 
 ## 内部技能执行逻辑（被状态类调用）
 func _execute_skill_internal(card: Card, skill_name: String, targets: Array, is_player: bool) -> Dictionary:
+	# 在线模式不允许本地计算，防止与服务器权威冲突
+	if is_online_mode:
+		return {"success": false, "error": "online_mode_server_authoritative"}
+	
 	print("执行技能: %s 使用 %s" % [card.card_name, skill_name])
 	
 	# 安全性检查
@@ -1925,6 +1932,106 @@ func _on_server_game_over(game_result: Dictionary):
 	battle_ended.emit(battle_result)
 	
 	print("✅ 战斗结束处理完成，已发送 battle_ended 信号")
+
+## 🌐 收到完整状态快照（客户端一致性校验/重建）
+func _on_full_state_received(state_data: Dictionary):
+	if not is_online_mode:
+		return
+	print("🌐 正在应用服务器快照（回合 %d）" % state_data.get("turn", 0))
+	apply_full_state(state_data)
+
+## 🌐 应用服务器完整状态到本地（仅在线模式）
+func apply_full_state(state_data: Dictionary):
+	if not is_online_mode:
+		return
+	
+	# 更新回合与当前行动方
+	current_turn = state_data.get("turn", current_turn)
+	var current_player_key = state_data.get("current_player", "host")
+	var is_my_turn_now = (NetworkManager.is_host and current_player_key == "host") or (not NetworkManager.is_host and current_player_key == "guest")
+	current_player = is_my_turn_now
+	
+	# 技能点映射
+	var host_sp = state_data.get("host_skill_points", player_skill_points)
+	var guest_sp = state_data.get("guest_skill_points", enemy_skill_points)
+	if NetworkManager.is_host:
+		player_skill_points = host_sp
+		enemy_skill_points = guest_sp
+	else:
+		player_skill_points = guest_sp
+		enemy_skill_points = host_sp
+	skill_points_changed.emit(player_skill_points, enemy_skill_points)
+	
+	# 行动点映射
+	var blue_actions = state_data.get("blue_actions_used", player_actions_used)
+	var red_actions = state_data.get("red_actions_used", enemy_actions_used)
+	if NetworkManager.is_host:
+		player_actions_used = blue_actions
+		enemy_actions_used = red_actions
+	else:
+		player_actions_used = red_actions
+		enemy_actions_used = blue_actions
+	actions_changed.emit(player_actions_used, enemy_actions_used)
+	
+	# 金币映射
+	var host_gold = state_data.get("host_gold", player_gold)
+	var guest_gold = state_data.get("guest_gold", enemy_gold)
+	if NetworkManager.is_host:
+		player_gold = host_gold
+		enemy_gold = guest_gold
+	else:
+		player_gold = guest_gold
+		enemy_gold = host_gold
+	gold_changed.emit(player_gold, enemy_gold, state_data.get("gold_income", {}))
+	
+	# 奥义点映射
+	var blue_ougi = state_data.get("blue_ougi_points", player_ougi_points)
+	var red_ougi = state_data.get("red_ougi_points", enemy_ougi_points)
+	if NetworkManager.is_host:
+		player_ougi_points = blue_ougi
+		enemy_ougi_points = red_ougi
+	else:
+		player_ougi_points = red_ougi
+		enemy_ougi_points = blue_ougi
+	max_ougi_points = state_data.get("max_ougi_points", max_ougi_points)
+	ougi_points_changed.emit(player_ougi_points, enemy_ougi_points)
+	
+	# 同步卡牌数据
+	_sync_cards_from_snapshot(state_data.get("blue_cards", []), true)
+	_sync_cards_from_snapshot(state_data.get("red_cards", []), false)
+	
+	# 更新 UI 状态
+	_update_all_entities_display()
+	
+	# 更新 BattleState，确保回合方一致
+	change_to_state("player_turn" if is_my_turn_now else "enemy_turn")
+	turn_changed.emit(is_my_turn_now)
+
+## 将快照数据同步到现有卡牌
+func _sync_cards_from_snapshot(cards_data: Array, is_blue: bool):
+	for card_data in cards_data:
+		var card_id = card_data.get("id", "")
+		var local_card = _find_card_by_id(card_id)
+		if not local_card:
+			print("⚠️ 找不到卡牌以应用快照: %s" % card_id)
+			continue
+		
+		local_card.max_health = card_data.get("max_health", local_card.max_health)
+		local_card.health = card_data.get("health", local_card.health)
+		local_card.attack = card_data.get("attack", local_card.attack)
+		local_card.armor = card_data.get("armor", local_card.armor)
+		local_card.shield = card_data.get("shield", local_card.shield)
+		local_card.crit_rate = card_data.get("crit_rate", local_card.crit_rate)
+		local_card.crit_damage = card_data.get("crit_damage", local_card.crit_damage)
+		local_card.dodge_rate = card_data.get("dodge_rate", local_card.dodge_rate)
+		if card_data.has("dodge_bonus"):
+			local_card.gongsunli_dodge_bonus = card_data.dodge_bonus
+		if card_data.has("equipment"):
+			local_card.equipment = card_data.equipment
+		if card_data.has("daqiao_passive_used"):
+			local_card.daqiao_passive_used = card_data.daqiao_passive_used
+		
+		_update_battle_entity_display(local_card)
 
 ## 🔨 处理装备合成成功
 func _on_equipment_crafted(craft_data: Dictionary):

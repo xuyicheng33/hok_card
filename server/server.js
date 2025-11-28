@@ -64,6 +64,49 @@ function calculateGoldIncome(currentGold) {
   };
 }
 
+// 序列化完整游戏状态（用于客户端校验/重建）
+function buildFullState(room) {
+  const gameState = room.gameState;
+  const goldMgr = room.goldManager;
+
+  const serializeCard = (card) => ({
+    id: card.id,
+    card_name: card.card_name,
+    max_health: card.max_health,
+    health: card.health,
+    attack: card.attack,
+    armor: card.armor,
+    shield: card.shield || 0,
+    crit_rate: card.crit_rate || 0,
+    crit_damage: card.crit_damage || 1.3,
+    dodge_rate: card.dodge_rate || 0,
+    dodge_bonus: card.dodge_bonus || 0,
+    equipment: card.equipment || [],
+    daqiao_passive_used: card.daqiao_passive_used || false,
+    skill_name: card.skill_name,
+    skill_cost: card.skill_cost,
+    skill_ends_turn: card.skill_ends_turn
+  });
+
+  return {
+    type: 'full_state',
+    turn: gameState.currentTurn,
+    current_player: gameState.currentPlayer,
+    host_skill_points: gameState.hostSkillPoints,
+    guest_skill_points: gameState.guestSkillPoints,
+    blue_actions_used: gameState.blueActionsUsed,
+    red_actions_used: gameState.redActionsUsed,
+    actions_per_turn: gameState.actionsPerTurn,
+    host_gold: goldMgr ? goldMgr.hostGold : gameState.blueGold,
+    guest_gold: goldMgr ? goldMgr.guestGold : gameState.redGold,
+    blue_ougi_points: gameState.blueOugiPoints || 0,
+    red_ougi_points: gameState.redOugiPoints || 0,
+    max_ougi_points: gameState.maxOugiPoints || 5,
+    blue_cards: gameState.blueCards.map(serializeCard),
+    red_cards: gameState.redCards.map(serializeCard)
+  };
+}
+
 // 🏆 检查游戏是否结束（服务器权威）
 function checkGameOver(roomId, room) {
   const gameState = room.gameState;
@@ -569,6 +612,18 @@ wss.on('connection', (ws) => {
         if (!result.success) {
           sendToClient(clientId, { type: 'pick_failed', error: result.error });
         }
+      }
+      // 🎯 主动请求完整状态（用于客户端纠偏/重连）
+      else if (data.type === 'request_state') {
+        const roomId = playerRooms.get(clientId);
+        const room = rooms.get(roomId);
+        if (!room) {
+          sendToClient(clientId, { type: 'error', message: '房间不存在或已结束' });
+          return;
+        }
+        const snapshot = buildFullState(room);
+        sendToClient(clientId, snapshot);
+        console.log('[状态同步] 已向 %s 返回完整状态（回合:%d）', clientId, snapshot.turn);
       }
       else if (data.type === 'game_action') {
         const roomId = playerRooms.get(clientId);

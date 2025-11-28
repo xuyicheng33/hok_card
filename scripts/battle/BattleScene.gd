@@ -790,6 +790,9 @@ func setup_ui():
 		create_default_online_cards()
 		start_test_battle()
 		update_battle_status("等待对手连接..." if NetworkManager.is_host else "等待房主操作...")
+		# 立即请求一次完整状态，确保客户端与服务器一致
+		if NetworkManager:
+			NetworkManager.request_full_state()
 		return
 	
 	# 单机模式：创建测试卡牌并开始战斗

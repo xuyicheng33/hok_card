@@ -44,6 +44,7 @@ signal equipment_crafted(craft_data: Dictionary)  # 🔨 装备合成成功
 signal craft_failed(error_message: String)  # 🔨 装备合成失败
 signal opponent_crafted(craft_data: Dictionary)  # 🔨 对手合成装备通知（包含完整数据）
 signal game_over(game_result: Dictionary)  # 🏆 游戏结束（服务器权威）
+signal full_state_received(state_data: Dictionary)  # 🌐 完整状态同步
 
 # 🎯 英雄选择系统信号
 signal pick_phase_started(pick_data: Dictionary)  # 选人阶段开始
@@ -312,6 +313,13 @@ func handle_server_message(message: Dictionary):
 			print("❌ 装备合成失败: %s" % error_msg)
 			craft_failed.emit(error_msg)
 		
+		"full_state":
+			print("🌐 收到完整状态快照: 回合%d 当前玩家:%s" % [
+				message.get("turn", 0),
+				message.get("current_player", "unknown")
+			])
+			full_state_received.emit(message)
+		
 		"opponent_crafted":
 			var team = message.get("team", "")
 			var hero_id = message.get("hero_id", "")
@@ -360,9 +368,16 @@ func send_message(message: Dictionary) -> bool:
 	
 	if error != OK:
 		print("发送消息失败，错误代码: %d" % error)
-		return false
+			return false
 	
 	return true
+
+## 请求服务器返回完整状态（用于重建/校验）
+func request_full_state() -> bool:
+	return send_message({
+		"type": "request_state",
+		"room_id": room_id
+	})
 
 ## 创建房间
 func create_room(battle_mode: String = "2v2", player_name_input: String = "玩家1") -> bool:
