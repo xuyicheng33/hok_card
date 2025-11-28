@@ -3,6 +3,9 @@
  * 管理所有装备的数据和效果
  */
 
+const fs = require('fs');
+const path = require('path');
+
 // 装备等级枚举
 const EquipmentTier = {
   BASIC: 'basic',       // 基础装备
@@ -129,9 +132,41 @@ class EquipmentDatabase {
   constructor() {
     this.equipment = {
       [EquipmentTier.BASIC]: BASIC_EQUIPMENT,
-      [EquipmentTier.ADVANCED]: [], // 未来添加
-      [EquipmentTier.LEGENDARY]: [] // 未来添加
+      [EquipmentTier.ADVANCED]: [],
+      [EquipmentTier.LEGENDARY]: []
     };
+    // 优先尝试加载共享 JSON，确保与客户端一致
+    this._loadFromSharedJson();
+  }
+
+  /**
+   * 从共享 JSON 加载装备与配方（失败时保持内置表）
+   */
+  _loadFromSharedJson() {
+    try {
+      const jsonPath = path.resolve(__dirname, '../../assets/data/equipment_data.json');
+      if (!fs.existsSync(jsonPath)) {
+        console.warn('[EquipmentDatabase] 未找到共享 JSON，使用内置表:', jsonPath);
+        return false;
+      }
+      const raw = fs.readFileSync(jsonPath, 'utf-8');
+      const parsed = JSON.parse(raw);
+
+      if (Array.isArray(parsed.basic_equipment)) {
+        this.equipment[EquipmentTier.BASIC] = parsed.basic_equipment.map((eq) => ({ ...eq }));
+      }
+      if (Array.isArray(parsed.advanced_recipes)) {
+        this.equipment[EquipmentTier.ADVANCED] = parsed.advanced_recipes.map((eq) => ({ ...eq }));
+      }
+      console.log('[EquipmentDatabase] 已从共享 JSON 加载装备/配方，基础:%d 进阶:%d',
+        this.equipment[EquipmentTier.BASIC].length,
+        this.equipment[EquipmentTier.ADVANCED].length
+      );
+      return true;
+    } catch (err) {
+      console.error('[EquipmentDatabase] 加载共享 JSON 失败，使用内置表:', err);
+      return false;
+    }
   }
 
   /**
