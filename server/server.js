@@ -1632,13 +1632,43 @@ wss.on('connection', (ws) => {
           gameState.currentTurn++;
           gameState.currentPlayer = (gameState.currentPlayer === 'host') ? 'guest' : 'host';
 
-          // 重置行动点
-          gameState.blueActionsUsed = 0;
-          gameState.redActionsUsed = 0;
+          // 判断新回合是谁的
+          const newIsHostTurn = (gameState.currentTurn % 2 === 1);
+          const newTeam = newIsHostTurn ? 'blue' : 'red';
+
+          // 重置行动点（新回合方）
+          if (newIsHostTurn) {
+            gameState.blueActionsUsed = 0;
+          } else {
+            gameState.redActionsUsed = 0;
+          }
+
+          // 🌟 增加技能点（第3回合开始）
+          if (gameState.currentTurn > 2) {
+            if (newIsHostTurn) {
+              gameState.hostSkillPoints = Math.min(6, gameState.hostSkillPoints + 1);
+              gameState.blueSkillPoints = gameState.hostSkillPoints;
+              console.log('[技能点] 房主/蓝方 +1 → ', gameState.hostSkillPoints);
+            } else {
+              gameState.guestSkillPoints = Math.min(6, gameState.guestSkillPoints + 1);
+              gameState.redSkillPoints = gameState.guestSkillPoints;
+              console.log('[技能点] 客户端/红方 +1 → ', gameState.guestSkillPoints);
+            }
+          }
+
+          // 💰 金币结算（新回合开始时，给新回合方结算）
+          const goldMgr = room.goldManager;
+          let goldIncome = null;
+          if (goldMgr) {
+            const currentGold = goldMgr.getGold(newTeam);
+            goldIncome = calculateGoldIncome(currentGold);
+            goldMgr.grantTurnIncome(newTeam, goldIncome.base, goldIncome.interest);
+            console.log('💰 [金币结算] %s方: +%d (基础:%d 利息:%d)',
+              newTeam === 'blue' ? '蓝' : '红',
+              goldIncome.total, goldIncome.base, goldIncome.interest);
+          }
 
           // 📢 广播回合切换（包含奥义点信息）
-          const newIsHostTurn = (gameState.currentTurn % 2 === 1);
-          const goldMgr = room.goldManager;
           room.players.forEach(playerId => {
             const isPlayerHost = (playerId === room.host);
             const isMyNewTurn = (isPlayerHost === newIsHostTurn);
@@ -1651,9 +1681,10 @@ wss.on('connection', (ws) => {
               guest_skill_points: gameState.guestSkillPoints,
               blue_actions_used: gameState.blueActionsUsed,
               red_actions_used: gameState.redActionsUsed,
-              // 💰 金币信息（奥义结束回合不结算金币）
+              // 💰 金币信息
               host_gold: goldMgr ? goldMgr.getGold('blue') : 10,
               guest_gold: goldMgr ? goldMgr.getGold('red') : 10,
+              gold_income: goldIncome,
               // ⭐ 奥义点信息
               blue_ougi_points: gameState.blueOugiPoints,
               red_ougi_points: gameState.redOugiPoints,
