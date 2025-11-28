@@ -1959,6 +1959,10 @@ func _on_turn_changed(is_player_turn: bool):
 	var battle_info = BattleManager.get_battle_info()
 	update_turn_info(battle_info.turn, is_player_turn)
 	
+	# 在线模式下根据回合禁用操作按钮，防止误操作
+	if BattleManager.is_online_mode:
+		_update_action_controls(is_player_turn)
+	
 	# 消息系统记录回合开始
 	if message_system:
 		# 确保每个回合都传递玩家信息，包括第一回合
@@ -2003,6 +2007,19 @@ func _on_turn_changed(is_player_turn: bool):
 	
 	# 显示当前所有卡牌状态
 	call_deferred("update_cards_display")
+
+## 控制操作按钮状态（在线模式防误操作）
+func _update_action_controls(is_my_turn: bool):
+	if end_turn_button:
+		end_turn_button.disabled = not is_my_turn
+	if use_skill_button:
+		use_skill_button.disabled = not is_my_turn
+	if use_ougi_button:
+		use_ougi_button.disabled = not is_my_turn
+	if buy_equipment_button:
+		buy_equipment_button.disabled = not is_my_turn
+	if craft_equipment_button:
+		craft_equipment_button.disabled = not is_my_turn
 
 func _on_battle_state_changed(new_state):
 	# 只在关键状态变化时输出

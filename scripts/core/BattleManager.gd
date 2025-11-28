@@ -1938,7 +1938,10 @@ func _on_full_state_received(state_data: Dictionary):
 	if not is_online_mode:
 		return
 	print("🌐 正在应用服务器快照（回合 %d）" % state_data.get("turn", 0))
-	apply_full_state(state_data)
+	if _validate_full_state(state_data):
+		apply_full_state(state_data)
+	else:
+		print("⚠️ 跳过应用：完整状态快照缺失关键字段")
 
 ## 🌐 应用服务器完整状态到本地（仅在线模式）
 func apply_full_state(state_data: Dictionary):
@@ -2006,6 +2009,21 @@ func apply_full_state(state_data: Dictionary):
 	# 更新 BattleState，确保回合方一致
 	change_to_state("player_turn" if is_my_turn_now else "enemy_turn")
 	turn_changed.emit(is_my_turn_now)
+
+## 校验完整状态必要字段
+func _validate_full_state(state_data: Dictionary) -> bool:
+	var required_keys = ["turn", "current_player", "host_skill_points", "guest_skill_points", "blue_cards", "red_cards"]
+	for key in required_keys:
+		if not state_data.has(key):
+			print("⚠️ 完整状态缺少字段: %s" % key)
+			return false
+	
+	# 校验卡牌数组
+	if typeof(state_data.blue_cards) != TYPE_ARRAY or typeof(state_data.red_cards) != TYPE_ARRAY:
+		print("⚠️ 完整状态卡牌字段类型错误")
+		return false
+	
+	return true
 
 ## 将快照数据同步到现有卡牌
 func _sync_cards_from_snapshot(cards_data: Array, is_blue: bool):

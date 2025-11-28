@@ -11,3 +11,7 @@ builds/
 *.apk
 *.apk.idsig
 hok_card.console.exe
+
+# 本地工具与临时文件
+.claude/
+*.uid
