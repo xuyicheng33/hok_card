@@ -1636,27 +1636,9 @@ wss.on('connection', (ws) => {
           gameState.blueActionsUsed = 0;
           gameState.redActionsUsed = 0;
 
-          // 💰 结算回合金币（利息系统）
-          const goldMgr = room.goldManager;
-          const goldIncomeData = {};
-          if (goldMgr) {
-            // 当前回合方获得金币
-            const currentTeam = (gameState.currentTurn % 2 === 1) ? 'blue' : 'red';
-            const currentGold = goldMgr.getGold(currentTeam);
-            const income = calculateGoldIncome(currentGold);
-
-            goldMgr.grantTurnIncome(currentTeam, income.base, income.interest);
-
-            goldIncomeData[currentTeam] = income;
-
-            console.log('💰 回合金币结算:');
-            console.log('   %s方: +%d金币 (基础:%d 利息:%d) → 💰%d',
-              currentTeam === 'blue' ? '蓝' : '红',
-              income.total, income.base, income.interest, goldMgr.getGold(currentTeam));
-          }
-
           // 📢 广播回合切换（包含奥义点信息）
           const newIsHostTurn = (gameState.currentTurn % 2 === 1);
+          const goldMgr = room.goldManager;
           room.players.forEach(playerId => {
             const isPlayerHost = (playerId === room.host);
             const isMyNewTurn = (isPlayerHost === newIsHostTurn);
@@ -1669,10 +1651,9 @@ wss.on('connection', (ws) => {
               guest_skill_points: gameState.guestSkillPoints,
               blue_actions_used: gameState.blueActionsUsed,
               red_actions_used: gameState.redActionsUsed,
-              // 💰 金币信息
+              // 💰 金币信息（奥义结束回合不结算金币）
               host_gold: goldMgr ? goldMgr.getGold('blue') : 10,
               guest_gold: goldMgr ? goldMgr.getGold('red') : 10,
-              gold_income: goldIncomeData,
               // ⭐ 奥义点信息
               blue_ougi_points: gameState.blueOugiPoints,
               red_ougi_points: gameState.redOugiPoints,
