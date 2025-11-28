@@ -81,15 +81,13 @@ class CraftingRecipes {
     }
     
     // 排序后比较（顺序无关）
-    const sortedMaterials = [...materialIds].map(func(id):
-      return id
-    ).sort();
-    
+    const sortedMaterials = [...materialIds].map(id => id).sort();
+
     // 搜索进阶装备配方
     for (const recipeId in this.advancedRecipes) {
       const recipe = this.advancedRecipes[recipeId];
-      const recipeMaterials = recipe.materials.map(func(m):
-        return m.id if m is Dictionary else m
+      const recipeMaterials = recipe.materials.map(m =>
+        typeof m === 'object' ? m.id : m
       ).sort();
       
       // 比较两个数组是否相同
@@ -163,9 +161,59 @@ class CraftingRecipes {
       advanced: Object.keys(this.advancedRecipes).length,
       epic: Object.keys(this.epicRecipes).length,
       legendary: Object.keys(this.legendaryRecipes).length,
-      total: Object.keys(this.advancedRecipes).length + 
-             Object.keys(this.epicRecipes).length + 
+      total: Object.keys(this.advancedRecipes).length +
+             Object.keys(this.epicRecipes).length +
              Object.keys(this.legendaryRecipes).length
+    };
+  }
+
+  /**
+   * 从共享 JSON 加载配方
+   * @returns {boolean} 是否成功加载
+   */
+  _loadFromSharedJson() {
+    try {
+      const jsonPath = path.resolve(__dirname, '../../assets/data/equipment_data.json');
+      if (!fs.existsSync(jsonPath)) {
+        console.warn('[CraftingRecipes] 未找到共享 JSON:', jsonPath);
+        return false;
+      }
+      const raw = fs.readFileSync(jsonPath, 'utf-8');
+      const parsed = JSON.parse(raw);
+
+      if (Array.isArray(parsed.advanced_recipes)) {
+        for (const recipe of parsed.advanced_recipes) {
+          this.advancedRecipes[recipe.id] = recipe;
+        }
+        console.log('[CraftingRecipes] 已从共享 JSON 加载 %d 个配方', parsed.advanced_recipes.length);
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error('[CraftingRecipes] 加载共享 JSON 失败:', err);
+      return false;
+    }
+  }
+
+  /**
+   * 获取内置的备用配方
+   * @returns {Object} 配方对象
+   */
+  _getFallbackRecipes() {
+    return {
+      'advanced_001': {
+        id: 'advanced_001',
+        name: '暴烈之刃',
+        tier: 'advanced',
+        category: 'attack',
+        icon: '暴烈之刃.png',
+        materials: ['basic_001', 'basic_002'],
+        effects: [
+          { type: 'attack', value: 30 },
+          { type: 'crit_rate', value: 0.15 }
+        ],
+        description: '攻击力+30，暴击率+15%'
+      }
     };
   }
 }
