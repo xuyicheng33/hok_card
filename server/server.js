@@ -1640,21 +1640,19 @@ wss.on('connection', (ws) => {
           const goldMgr = room.goldManager;
           const goldIncomeData = {};
           if (goldMgr) {
-            const blueIncome = goldMgr.calculateIncomeForTurn('blue', gameState.currentTurn);
-            const redIncome = goldMgr.calculateIncomeForTurn('red', gameState.currentTurn);
+            // 当前回合方获得金币
+            const currentTeam = (gameState.currentTurn % 2 === 1) ? 'blue' : 'red';
+            const currentGold = goldMgr.getGold(currentTeam);
+            const income = calculateGoldIncome(currentGold);
 
-            goldMgr.addGold('blue', blueIncome.total);
-            goldMgr.addGold('red', redIncome.total);
+            goldMgr.grantTurnIncome(currentTeam, income.base, income.interest);
 
-            const goldState = goldMgr.getState();
-            goldIncomeData.blue = blueIncome;
-            goldIncomeData.red = redIncome;
+            goldIncomeData[currentTeam] = income;
 
             console.log('💰 回合金币结算:');
-            console.log('   蓝方: +%d金币 (基础:%d 利息:%d) → 💰%d',
-              blueIncome.total, blueIncome.base, blueIncome.interest, goldState.blueGold);
-            console.log('   红方: +%d金币 (基础:%d 利息:%d) → 💰%d',
-              redIncome.total, redIncome.base, redIncome.interest, goldState.redGold);
+            console.log('   %s方: +%d金币 (基础:%d 利息:%d) → 💰%d',
+              currentTeam === 'blue' ? '蓝' : '红',
+              income.total, income.base, income.interest, goldMgr.getGold(currentTeam));
           }
 
           // 📢 广播回合切换（包含奥义点信息）
