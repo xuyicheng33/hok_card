@@ -8,7 +8,7 @@ var socket: WebSocketPeer
 var connection_status: ConnectionStatus = ConnectionStatus.DISCONNECTED
 
 # 服务器配置
-var server_url: String = "ws://121.199.78.133:3000"  # 阿里云服务器
+var server_url: String = "ws://47.118.21.64:3000"  # 阿里云服务器
 # var server_url: String = "ws://localhost:3000"  # 本地测试
 
 # 房间和玩家信息
